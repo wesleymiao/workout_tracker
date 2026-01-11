@@ -7,12 +7,15 @@ let currentScreen = 'home-screen';
 let workoutHistory = [];
 let checklistConfig = ['Water bottle', 'Towel', 'Gym shoes', 'Phone & earbuds'];
 let editingExerciseIndex = null;
+let workoutTimer = null;
+let workoutStartTime = null;
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
     loadData();
     initializeEventListeners();
     showScreen('home-screen');
+    updateHomeStats();
 });
 
 // API Functions
@@ -23,9 +26,9 @@ async function loadData() {
         const data = await response.json();
         workoutHistory = data.workoutHistory || [];
         checklistConfig = data.checklistConfig || ['Water bottle', 'Towel', 'Gym shoes', 'Phone & earbuds'];
+        updateHomeStats();
     } catch (error) {
         console.error('Error loading data:', error);
-        alert('Failed to load data from server. Using defaults.');
     }
 }
 
@@ -41,7 +44,6 @@ async function saveWorkout(workout) {
         return result;
     } catch (error) {
         console.error('Error saving workout:', error);
-        alert('Failed to save workout to server');
         throw error;
     }
 }
@@ -56,7 +58,6 @@ async function saveChecklistConfig() {
         if (!response.ok) throw new Error('Failed to save checklist');
     } catch (error) {
         console.error('Error saving checklist:', error);
-        alert('Failed to save checklist to server');
     }
 }
 
@@ -66,39 +67,63 @@ function showScreen(screenId) {
         screen.classList.remove('active');
     });
     document.getElementById(screenId).classList.add('active');
+    
+    // Update bottom nav
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.dataset.screen === screenId) {
+            item.classList.add('active');
+        }
+    });
+    
     currentScreen = screenId;
 }
 
 // Event Listeners
 function initializeEventListeners() {
+    // Bottom Navigation
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const screen = item.dataset.screen;
+            if (screen === 'stats-screen') {
+                showStatistics();
+            } else if (screen === 'settings-screen') {
+                showSettings();
+            } else {
+                showScreen(screen);
+            }
+        });
+    });
+    
     // Home Screen
     document.getElementById('start-workout-btn').addEventListener('click', startWorkoutFlow);
-    document.getElementById('view-stats-btn').addEventListener('click', showStatistics);
-    document.getElementById('settings-btn').addEventListener('click', showSettings);
     
     // Checklist Screen
     document.getElementById('checklist-continue-btn').addEventListener('click', () => {
         showScreen('workout-type-screen');
     });
-    document.getElementById('checklist-back-btn').addEventListener('click', () => {
+    document.getElementById('checklist-back-btn')?.addEventListener('click', () => {
         showScreen('home-screen');
     });
     
     // Workout Type Screen
-    document.querySelectorAll('.workout-type-btn').forEach(btn => {
+    document.querySelectorAll('.workout-type-card').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            const workoutType = e.target.dataset.type;
-            selectWorkoutType(workoutType);
+            const card = e.target.closest('.workout-type-card');
+            if (card) {
+                const workoutType = card.dataset.type;
+                selectWorkoutType(workoutType);
+            }
         });
     });
-    document.getElementById('workout-type-back-btn').addEventListener('click', () => {
+    document.getElementById('workout-type-back-btn')?.addEventListener('click', () => {
         showScreen('checklist-screen');
     });
     
     // Exercise Planning Screen
     document.getElementById('add-exercise-btn').addEventListener('click', openExerciseModal);
     document.getElementById('start-tracking-btn').addEventListener('click', startTracking);
-    document.getElementById('planning-back-btn').addEventListener('click', () => {
+    document.getElementById('planning-back-btn')?.addEventListener('click', () => {
         showScreen('workout-type-screen');
     });
     
@@ -110,15 +135,7 @@ function initializeEventListeners() {
         showScreen('home-screen');
     });
     
-    // Statistics Screen
-    document.getElementById('stats-back-btn').addEventListener('click', () => {
-        showScreen('home-screen');
-    });
-    
     // Settings Screen
-    document.getElementById('settings-back-btn').addEventListener('click', () => {
-        showScreen('home-screen');
-    });
     document.getElementById('add-checklist-item-btn').addEventListener('click', addChecklistItem);
     
     // Exercise Modal
@@ -127,6 +144,22 @@ function initializeEventListeners() {
     });
     document.getElementById('save-exercise-btn').addEventListener('click', saveExercise);
     document.getElementById('cancel-exercise-btn').addEventListener('click', closeExerciseModal);
+    
+    // Modal backdrop click
+    const modal = document.getElementById('exercise-modal');
+    const backdrop = modal.querySelector('.modal-backdrop');
+    if (backdrop) {
+        backdrop.addEventListener('click', closeExerciseModal);
+    }
+}
+
+// Home Stats
+function updateHomeStats() {
+    const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+    const thisWeek = workoutHistory.filter(w => new Date(w.date).getTime() > sevenDaysAgo).length;
+    
+    document.getElementById('stats-this-week').textContent = thisWeek;
+    document.getElementById('stats-total').textContent = workoutHistory.length;
 }
 
 // Start Workout Flow
@@ -148,6 +181,7 @@ function renderChecklist() {
     checklistConfig.forEach((item, index) => {
         const div = document.createElement('div');
         div.className = 'checklist-item';
+        div.style.animationDelay = `${index * 20}ms`;
         div.innerHTML = `
             <input type="checkbox" id="check-${index}">
             <label for="check-${index}">${item}</label>
@@ -211,7 +245,8 @@ function renderExercisePlanning() {
     
     currentWorkout.exercises.forEach((exercise, index) => {
         const div = document.createElement('div');
-        div.className = 'exercise-item';
+        div.className = 'exercise-card';
+        div.style.animationDelay = `${index * 20}ms`;
         
         let details = '';
         if (exercise.exerciseType === 'equipment') {
@@ -223,12 +258,12 @@ function renderExercisePlanning() {
         div.innerHTML = `
             <div class="exercise-header">
                 <div class="exercise-name">${exercise.name}</div>
-                <button class="delete-exercise-btn" data-index="${index}">×</button>
+                <button class="delete-btn" data-index="${index}">×</button>
             </div>
             <div class="exercise-details">${details}</div>
         `;
         
-        div.querySelector('.delete-exercise-btn').addEventListener('click', () => {
+        div.querySelector('.delete-btn').addEventListener('click', () => {
             currentWorkout.exercises.splice(index, 1);
             renderExercisePlanning();
         });
@@ -256,11 +291,11 @@ function toggleExerciseFields(type) {
     const cardioFields = document.getElementById('cardio-fields');
     
     if (type === 'equipment') {
-        equipmentFields.style.display = 'block';
+        equipmentFields.style.display = 'flex';
         cardioFields.style.display = 'none';
     } else {
         equipmentFields.style.display = 'none';
-        cardioFields.style.display = 'block';
+        cardioFields.style.display = 'flex';
     }
 }
 
@@ -346,8 +381,30 @@ function startTracking() {
     };
     
     document.getElementById('workout-title').textContent = `${typeLabels[currentWorkout.type]} Workout`;
+    workoutStartTime = Date.now();
+    startWorkoutTimer();
     renderWorkoutTracking();
     showScreen('during-workout-screen');
+}
+
+// Workout Timer
+function startWorkoutTimer() {
+    if (workoutTimer) clearInterval(workoutTimer);
+    
+    workoutTimer = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - workoutStartTime) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+        document.getElementById('workout-timer').textContent = 
+            `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }, 1000);
+}
+
+function stopWorkoutTimer() {
+    if (workoutTimer) {
+        clearInterval(workoutTimer);
+        workoutTimer = null;
+    }
 }
 
 // Render Workout Tracking
@@ -355,34 +412,36 @@ function renderWorkoutTracking() {
     const container = document.getElementById('workout-exercises');
     container.innerHTML = '';
     
+    updateWorkoutProgress();
+    
     currentWorkout.exercises.forEach((exercise, index) => {
         const div = document.createElement('div');
-        div.className = `workout-exercise-item ${exercise.completed ? 'completed' : ''}`;
+        div.className = `workout-exercise-card ${exercise.completed ? 'completed' : ''}`;
         
         let controlsHtml = '';
         if (exercise.exerciseType === 'equipment') {
             controlsHtml = `
                 <div class="exercise-controls">
-                    <div class="exercise-control-row">
-                        <label>Weight (kg):</label>
-                        <input type="number" value="${exercise.actualWeight}" data-field="actualWeight" data-index="${index}">
+                    <div class="control-row">
+                        <span class="control-label">Weight (kg):</span>
+                        <input type="number" class="control-input" value="${exercise.actualWeight}" data-field="actualWeight" data-index="${index}">
                     </div>
-                    <div class="exercise-control-row">
-                        <label>Reps:</label>
-                        <input type="number" value="${exercise.actualReps}" data-field="actualReps" data-index="${index}">
+                    <div class="control-row">
+                        <span class="control-label">Reps:</span>
+                        <input type="number" class="control-input" value="${exercise.actualReps}" data-field="actualReps" data-index="${index}">
                     </div>
-                    <div class="exercise-control-row">
-                        <label>Sets:</label>
-                        <input type="number" value="${exercise.actualSets}" data-field="actualSets" data-index="${index}">
+                    <div class="control-row">
+                        <span class="control-label">Sets:</span>
+                        <input type="number" class="control-input" value="${exercise.actualSets}" data-field="actualSets" data-index="${index}">
                     </div>
                 </div>
             `;
         } else {
             controlsHtml = `
                 <div class="exercise-controls">
-                    <div class="exercise-control-row">
-                        <label>Distance (km):</label>
-                        <input type="number" step="0.1" value="${exercise.actualDistance}" data-field="actualDistance" data-index="${index}">
+                    <div class="control-row">
+                        <span class="control-label">Distance (km):</span>
+                        <input type="number" step="0.1" class="control-input" value="${exercise.actualDistance}" data-field="actualDistance" data-index="${index}">
                     </div>
                 </div>
             `;
@@ -397,7 +456,7 @@ function renderWorkoutTracking() {
         `;
         
         // Add input change listeners
-        div.querySelectorAll('input').forEach(input => {
+        div.querySelectorAll('.control-input').forEach(input => {
             input.addEventListener('change', (e) => {
                 const idx = parseInt(e.target.dataset.index);
                 const field = e.target.dataset.field;
@@ -416,14 +475,23 @@ function renderWorkoutTracking() {
     });
 }
 
+function updateWorkoutProgress() {
+    const completed = currentWorkout.exercises.filter(ex => ex.completed).length;
+    const total = currentWorkout.exercises.length;
+    const percentage = total > 0 ? (completed / total) * 100 : 0;
+    document.getElementById('workout-progress').style.width = `${percentage}%`;
+}
+
 // Finish Workout
 async function finishWorkout() {
+    stopWorkoutTimer();
     currentWorkout.endTime = Date.now();
     currentWorkout.duration = Math.round((currentWorkout.endTime - currentWorkout.startTime) / 1000 / 60);
     
     try {
         await saveWorkout(currentWorkout);
         workoutHistory.push(currentWorkout);
+        updateHomeStats();
         renderSummary();
         showScreen('summary-screen');
     } catch (error) {
@@ -459,34 +527,30 @@ function renderSummary() {
         exercisesSummary += `
             <div class="summary-row">
                 <span>${status} ${exercise.name}</span>
-                <span>${details}</span>
+                <span class="summary-value">${details}</span>
             </div>
         `;
     });
     
     container.innerHTML = `
-        <div class="summary-section">
-            <h3>Workout Details</h3>
+        <div class="summary-card">
+            <h3 class="mb-4">Workout Details</h3>
             <div class="summary-row">
-                <span class="summary-label">Type:</span>
+                <span>Type:</span>
                 <span class="summary-value">${typeLabels[currentWorkout.type]}</span>
             </div>
             <div class="summary-row">
-                <span class="summary-label">Date:</span>
-                <span class="summary-value">${date.toLocaleDateString()} ${date.toLocaleTimeString()}</span>
+                <span>Duration:</span>
+                <span class="summary-value">${currentWorkout.duration} min</span>
             </div>
             <div class="summary-row">
-                <span class="summary-label">Duration:</span>
-                <span class="summary-value">${currentWorkout.duration} minutes</span>
-            </div>
-            <div class="summary-row">
-                <span class="summary-label">Exercises:</span>
-                <span class="summary-value">${completedCount}/${currentWorkout.exercises.length} completed</span>
+                <span>Exercises:</span>
+                <span class="summary-value">${completedCount}/${currentWorkout.exercises.length}</span>
             </div>
         </div>
         
-        <div class="summary-section">
-            <h3>Exercises</h3>
+        <div class="summary-card">
+            <h3 class="mb-4">Exercises</h3>
             ${exercisesSummary}
         </div>
     `;
@@ -494,7 +558,7 @@ function renderSummary() {
 
 // Show Statistics
 async function showStatistics() {
-    await loadData(); // Refresh data from server
+    await loadData();
     renderStatistics();
     showScreen('stats-screen');
 }
@@ -508,15 +572,13 @@ function renderStatistics() {
     }
     
     const totalWorkouts = workoutHistory.length;
-    const totalExercises = workoutHistory.reduce((sum, w) => sum + w.exercises.length, 0);
-    const completedExercises = workoutHistory.reduce((sum, w) => 
-        sum + w.exercises.filter(ex => ex.completed).length, 0);
-    
-    // Calculate workout frequency in last 30 days
     const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
     const recentWorkouts = workoutHistory.filter(w => new Date(w.date).getTime() > thirtyDaysAgo).length;
     
-    // Check for declining trend (last 7 days vs previous 7 days)
+    const completedExercises = workoutHistory.reduce((sum, w) => 
+        sum + w.exercises.filter(ex => ex.completed).length, 0);
+    
+    // Check for declining trend
     const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
     const fourteenDaysAgo = Date.now() - (14 * 24 * 60 * 60 * 1000);
     const lastWeek = workoutHistory.filter(w => {
@@ -530,16 +592,16 @@ function renderStatistics() {
     
     let motivationMessage = '';
     if (lastWeek === 0 && previousWeek > 0) {
-        motivationMessage = '<div class="stat-card" style="background-color: var(--danger-color); color: white;"><h3>⚠️ Reminder</h3><p>You haven\'t worked out this week! Don\'t give up on your goals!</p></div>';
+        motivationMessage = '<div class="stat-card alert"><h3>⚠️ Reminder</h3><p>You haven\'t worked out this week! Don\'t give up on your goals!</p></div>';
     } else if (lastWeek < previousWeek && previousWeek > 0) {
-        motivationMessage = '<div class="stat-card" style="background-color: #FF9500; color: white;"><h3>📉 Trend Alert</h3><p>Your workout frequency is declining. Stay consistent!</p></div>';
+        motivationMessage = '<div class="stat-card alert"><h3>📉 Trend Alert</h3><p>Your workout frequency is declining. Stay consistent!</p></div>';
     } else if (lastWeek > previousWeek) {
-        motivationMessage = '<div class="stat-card" style="background-color: var(--success-color); color: white;"><h3>🔥 Great Job!</h3><p>Your workout frequency is improving! Keep it up!</p></div>';
+        motivationMessage = '<div class="stat-card success"><h3>🔥 Great Job!</h3><p>Your workout frequency is improving! Keep it up!</p></div>';
     }
     
     let historyHtml = '';
     const recentHistory = workoutHistory.slice(-10).reverse();
-    recentHistory.forEach(workout => {
+    recentHistory.forEach((workout, idx) => {
         const date = new Date(workout.date);
         const typeLabels = {
             'pull': 'Pull',
@@ -552,9 +614,9 @@ function renderStatistics() {
         const completedCount = workout.exercises.filter(ex => ex.completed).length;
         
         historyHtml += `
-            <div class="workout-history-item">
+            <div class="workout-history-item" style="animation-delay: ${idx * 20}ms">
                 <div class="workout-date">${date.toLocaleDateString()} ${date.toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'})}</div>
-                <div class="workout-type-label">${typeLabels[workout.type]}</div>
+                <span class="workout-type-badge">${typeLabels[workout.type]}</span>
                 <div class="workout-summary-text">${completedCount}/${workout.exercises.length} exercises • ${workout.duration} min</div>
             </div>
         `;
@@ -564,28 +626,28 @@ function renderStatistics() {
         ${motivationMessage}
         
         <div class="stat-card">
-            <div class="stat-number">${totalWorkouts}</div>
+            <div class="stat-number mono">${totalWorkouts}</div>
             <div class="stat-label">Total Workouts</div>
         </div>
         
         <div class="stat-card">
-            <div class="stat-number">${recentWorkouts}</div>
+            <div class="stat-number mono">${recentWorkouts}</div>
             <div class="stat-label">Workouts (Last 30 Days)</div>
         </div>
         
         <div class="stat-card">
-            <div class="stat-number">${completedExercises}</div>
+            <div class="stat-number mono">${completedExercises}</div>
             <div class="stat-label">Total Exercises Completed</div>
         </div>
         
-        <h3 style="margin-top: 24px; margin-bottom: 16px;">Recent Workouts</h3>
+        <h3 class="mt-6 mb-4">Recent Workouts</h3>
         ${historyHtml}
     `;
 }
 
 // Settings
 async function showSettings() {
-    await loadData(); // Refresh data from server
+    await loadData();
     renderSettings();
     showScreen('settings-screen');
 }
@@ -596,10 +658,10 @@ function renderSettings() {
     
     checklistConfig.forEach((item, index) => {
         const div = document.createElement('div');
-        div.className = 'settings-checklist-item';
+        div.className = 'settings-item';
         div.innerHTML = `
             <input type="text" value="${item}" data-index="${index}">
-            <button class="remove-item-btn" data-index="${index}">×</button>
+            <button class="remove-btn" data-index="${index}">×</button>
         `;
         
         div.querySelector('input').addEventListener('change', async (e) => {
@@ -607,7 +669,7 @@ function renderSettings() {
             await saveChecklistConfig();
         });
         
-        div.querySelector('.remove-item-btn').addEventListener('click', async () => {
+        div.querySelector('.remove-btn').addEventListener('click', async () => {
             checklistConfig.splice(index, 1);
             await saveChecklistConfig();
             renderSettings();
