@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Workout Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Home Screen -->
+    <div id="home-screen" class="screen active">
+        <div class="container">
+            <h1>💪 Workout Tracker</h1>
+            <button id="start-workout-btn" class="btn btn-primary">Start Workout</button>
+            <button id="view-stats-btn" class="btn btn-secondary">View Statistics</button>
+            <button id="settings-btn" class="btn btn-secondary">Settings</button>
+        </div>
+    </div>
+
+    <!-- Checklist Screen -->
+    <div id="checklist-screen" class="screen">
+        <div class="container">
+            <h2>Pre-Workout Checklist</h2>
+            <div id="checklist-items"></div>
+            <button id="checklist-continue-btn" class="btn btn-primary">Continue</button>
+            <button id="checklist-back-btn" class="btn btn-secondary">Back</button>
+        </div>
+    </div>
+
+    <!-- Workout Type Selection Screen -->
+    <div id="workout-type-screen" class="screen">
+        <div class="container">
+            <h2>Select Workout Type</h2>
+            <div class="workout-types">
+                <button class="workout-type-btn" data-type="pull">Pull</button>
+                <button class="workout-type-btn" data-type="push">Push</button>
+                <button class="workout-type-btn" data-type="legs">Legs</button>
+                <button class="workout-type-btn" data-type="swim">Swim</button>
+                <button class="workout-type-btn" data-type="run-gym">Run (Gym)</button>
+                <button class="workout-type-btn" data-type="run-outdoor">Run (Outdoor)</button>
+            </div>
+            <button id="workout-type-back-btn" class="btn btn-secondary">Back</button>
+        </div>
+    </div>
+
+    <!-- Exercise Planning Screen -->
+    <div id="exercise-planning-screen" class="screen">
+        <div class="container">
+            <h2 id="planning-title">Plan Your Workout</h2>
+            <div id="exercise-list"></div>
+            <button id="add-exercise-btn" class="btn btn-secondary">+ Add Exercise</button>
+            <button id="start-tracking-btn" class="btn btn-primary">Start Tracking</button>
+            <button id="planning-back-btn" class="btn btn-secondary">Back</button>
+        </div>
+    </div>
+
+    <!-- During Workout Screen -->
+    <div id="during-workout-screen" class="screen">
+        <div class="container">
+            <h2 id="workout-title">Workout In Progress</h2>
+            <div id="workout-exercises"></div>
+            <button id="finish-workout-btn" class="btn btn-primary">Finish Workout</button>
+        </div>
+    </div>
+
+    <!-- Workout Summary Screen -->
+    <div id="summary-screen" class="screen">
+        <div class="container">
+            <h2>Workout Summary</h2>
+            <div id="summary-content"></div>
+            <button id="summary-home-btn" class="btn btn-primary">Back to Home</button>
+        </div>
+    </div>
+
+    <!-- Statistics Screen -->
+    <div id="stats-screen" class="screen">
+        <div class="container">
+            <h2>Statistics</h2>
+            <div id="stats-content"></div>
+            <button id="stats-back-btn" class="btn btn-secondary">Back</button>
+        </div>
+    </div>
+
+    <!-- Settings Screen -->
+    <div id="settings-screen" class="screen">
+        <div class="container">
+            <h2>Settings</h2>
+            <h3>Checklist Items</h3>
+            <div id="settings-checklist"></div>
+            <button id="add-checklist-item-btn" class="btn btn-secondary">+ Add Item</button>
+            <button id="settings-back-btn" class="btn btn-secondary">Back</button>
+        </div>
+    </div>
+
+    <!-- Exercise Modal -->
+    <div id="exercise-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title">Add Exercise</h3>
+            <label>Exercise Type:</label>
+            <select id="exercise-type-select">
+                <option value="equipment">Equipment-based</option>
+                <option value="cardio">Cardio/Non-equipment</option>
+            </select>
+            
+            <div id="equipment-fields">
+                <label>Equipment Name:</label>
+                <input type="text" id="equipment-name" placeholder="e.g., Chest press machine">
+                
+                <label>Weight (kg):</label>
+                <input type="number" id="equipment-weight" placeholder="100">
+                
+                <label>Target Reps:</label>
+                <input type="number" id="equipment-reps" placeholder="15">
+                
+                <label>Target Sets:</label>
+                <input type="number" id="equipment-sets" placeholder="3">
+            </div>
+            
+            <div id="cardio-fields" style="display: none;">
+                <label>Activity:</label>
+                <input type="text" id="cardio-name" placeholder="e.g., Run, Bicycle">
+                
+                <label>Distance (km):</label>
+                <input type="number" id="cardio-distance" placeholder="1" step="0.1">
+            </div>
+            
+            <div class="modal-buttons">
+                <button id="save-exercise-btn" class="btn btn-primary">Save</button>
+                <button id="cancel-exercise-btn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
