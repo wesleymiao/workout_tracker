@@ -490,7 +490,7 @@ async function finishWorkout() {
     
     try {
         await saveWorkout(currentWorkout);
-        workoutHistory.push(currentWorkout);
+        await loadData(); // Reload data from server to get the saved workout
         updateHomeStats();
         renderSummary();
         showScreen('summary-screen');
