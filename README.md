@@ -1,127 +1,23 @@
-# Workout Tracker
+# ✨ Welcome to Your Spark Template!
+You've just launched your brand-new Spark Template Codespace — everything’s fired up and ready for you to explore, build, and create with Spark!
 
-A mobile-optimized web application for tracking personal workouts, designed primarily for iPhone browser usage.
+This template is your blank canvas. It comes with a minimal setup to help you get started quickly with Spark development.
 
-## Features
+🚀 What's Inside?
+- A clean, minimal Spark environment
+- Pre-configured for local development
+- Ready to scale with your ideas
+  
+🧠 What Can You Do?
 
-- **Pre-Workout Checklist**: Configurable reminder of items to bring
-- **Workout Types**: Pull, Push, Legs, Swim, Run (Gym), Run (Outdoor)
-- **Exercise Planning**: Equipment-based and cardio exercises with smart pre-population
-- **Real-time Tracking**: Mark exercises done and adjust values during workout
-- **Workout Summary**: Detailed post-workout statistics
-- **Analytics**: Historical data, progress tracking, and motivational alerts
-- **Settings**: Customizable checklist configuration
+Right now, this is just a starting point — the perfect place to begin building and testing your Spark applications.
 
-## Prerequisites
+🧹 Just Exploring?
+No problem! If you were just checking things out and don’t need to keep this code:
 
-- Node.js (version 14 or higher)
-- npm (comes with Node.js)
+- Simply delete your Spark.
+- Everything will be cleaned up — no traces left behind.
 
-## Installation
+📄 License For Spark Template Resources 
 
-1. Clone or download this repository
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-## Running Locally
-
-Start the server:
-```bash
-npm start
-```
-
-For development with auto-restart:
-```bash
-npm run dev
-```
-
-The application will be available at `http://localhost:3000`
-
-## Project Structure
-
-```
-workout-tracker/
-├── server.js           # Express backend server
-├── package.json        # Dependencies and scripts
-├── data/              # Data storage directory (auto-created)
-│   └── workouts.json  # Workout data file
-└── public/            # Frontend files
-    ├── index.html     # Main HTML file
-    ├── styles.css     # Styles
-    └── app.js         # Frontend JavaScript
-```
-
-## Deployment Options
-
-### Option 1: Railway.app (Recommended)
-
-1. Create account at [Railway.app](https://railway.app)
-2. Click "New Project" → "Deploy from GitHub repo"
-3. Select your repository
-4. Railway will auto-detect Node.js and deploy
-5. Your app will be live with a public URL
-
-### Option 2: Render.com
-
-1. Create account at [Render.com](https://render.com)
-2. Click "New" → "Web Service"
-3. Connect your GitHub repository
-4. Configure:
-   - Build Command: `npm install`
-   - Start Command: `npm start`
-5. Click "Create Web Service"
-
-### Option 3: Heroku
-
-1. Install Heroku CLI
-2. Login: `heroku login`
-3. Create app: `heroku create your-workout-tracker`
-4. Deploy:
-```bash
-git push heroku main
-```
-
-### Option 4: DigitalOcean App Platform
-
-1. Create account at [DigitalOcean](https://www.digitalocean.com)
-2. Go to App Platform
-3. Create new app from GitHub
-4. Configure Node.js app with auto-detection
-5. Deploy
-
-### Option 5: Vercel
-
-1. Install Vercel CLI: `npm install -g vercel`
-2. Run: `vercel`
-3. Follow prompts to deploy
-
-## Environment Variables
-
-No environment variables required for basic setup. The server uses:
-- `PORT`: Server port (default: 3000)
-
-## Data Storage
-
-Workout data is stored in a JSON file at `data/workouts.json`. For production use, consider migrating to a proper database (MongoDB, PostgreSQL, etc.).
-
-## API Endpoints
-
-- `GET /api/data` - Get all data (workouts + checklist config)
-- `GET /api/workouts` - Get workout history
-- `POST /api/workouts` - Save new workout
-- `PUT /api/checklist` - Update checklist configuration
-- `GET /api/health` - Health check endpoint
-
-## Browser Support
-
-Optimized for:
-- iOS Safari (primary target)
-- Chrome Mobile
-- Other modern mobile browsers
-
-## License
-
-ISC
+The Spark Template files and resources from GitHub are licensed under the terms of the MIT license, Copyright GitHub, Inc.
