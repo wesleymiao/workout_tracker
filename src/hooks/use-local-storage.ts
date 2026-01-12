@@ -1,58 +1,52 @@
 import { useState, useEffect, useCallback } from 'react'
 
+const API_BASE = '/api/storage'
+
 export function useLocalStorage<T>(key: string, defaultValue: T): [T, (value: T | ((prev: T) => T)) => void, () => void] {
-  const [storedValue, setStoredValue] = useState<T>(() => {
-    if (typeof window === 'undefined') {
-      return defaultValue
-    }
-    try {
-      const item = window.localStorage.getItem(key)
-      return item ? (JSON.parse(item) as T) : defaultValue
-    } catch (error) {
-      console.warn(`Error reading localStorage key "${key}":`, error)
-      return defaultValue
-    }
-  })
+  const [storedValue, setStoredValue] = useState<T>(defaultValue)
+  const [isLoaded, setIsLoaded] = useState(false)
 
-  const setValue = useCallback((value: T | ((prev: T) => T)) => {
-    try {
-      const valueToStore = value instanceof Function ? value(storedValue) : value
-      setStoredValue(valueToStore)
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(key, JSON.stringify(valueToStore))
-      }
-    } catch (error) {
-      console.warn(`Error setting localStorage key "${key}":`, error)
-    }
-  }, [key, storedValue])
-
-  const removeValue = useCallback(() => {
-    try {
-      setStoredValue(defaultValue)
-      if (typeof window !== 'undefined') {
-        window.localStorage.removeItem(key)
-      }
-    } catch (error) {
-      console.warn(`Error removing localStorage key "${key}":`, error)
-    }
+  // Load initial value from server
+  useEffect(() => {
+    fetch(`${API_BASE}/${encodeURIComponent(key)}`)
+      .then(res => {
+        if (res.ok) return res.json()
+        throw new Error('Not found')
+      })
+      .then(data => {
+        setStoredValue(data.value as T)
+        setIsLoaded(true)
+      })
+      .catch(() => {
+        setStoredValue(defaultValue)
+        setIsLoaded(true)
+      })
   }, [key, defaultValue])
 
-  // Sync across tabs/windows
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === key && e.newValue !== null) {
-        try {
-          setStoredValue(JSON.parse(e.newValue) as T)
-        } catch (error) {
-          console.warn(`Error parsing storage event for key "${key}":`, error)
-        }
-      } else if (e.key === key && e.newValue === null) {
-        setStoredValue(defaultValue)
-      }
-    }
+  const setValue = useCallback((value: T | ((prev: T) => T)) => {
+    setStoredValue(prev => {
+      const valueToStore = value instanceof Function ? value(prev) : value
+      
+      // Save to server
+      fetch(`${API_BASE}/${encodeURIComponent(key)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value: valueToStore })
+      }).catch(error => {
+        console.warn(`Error saving to server for key "${key}":`, error)
+      })
+      
+      return valueToStore
+    })
+  }, [key])
 
-    window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
+  const removeValue = useCallback(() => {
+    setStoredValue(defaultValue)
+    fetch(`${API_BASE}/${encodeURIComponent(key)}`, {
+      method: 'DELETE'
+    }).catch(error => {
+      console.warn(`Error removing from server for key "${key}":`, error)
+    })
   }, [key, defaultValue])
 
   return [storedValue, setValue, removeValue]
