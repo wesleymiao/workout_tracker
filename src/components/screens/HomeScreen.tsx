@@ -1,5 +1,5 @@
 import { useLocalStorage } from '@/hooks/use-local-storage'
-import { Plus, Fire, CheckCircle } from '@phosphor-icons/react'
+import { Plus, Fire, CheckCircle, Trash } from '@phosphor-icons/react'
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog'
@@ -9,20 +9,32 @@ import { useState } from 'react'
 import { Workout, ChecklistItem } from '@/lib/types'
 import { getDaysSinceLastWorkout, getWorkoutStreak, generateId } from '@/lib/workout-utils'
 import ChecklistDialog from '../ChecklistDialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../ui/alert-dialog'
 
 interface HomeScreenProps {
   onStartWorkout: () => void
 }
 
 export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
-  const [workouts] = useLocalStorage<Workout[]>('workouts', [])
+  const [workouts, setWorkouts] = useLocalStorage<Workout[]>('workouts', [])
   const [checklistItems, setChecklistItems] = useLocalStorage<string[]>('checklist-items', [
     'Water bottle',
     'Towel',
     'Headphones'
   ])
-  const [activeWorkout] = useLocalStorage<Workout | null>('active-workout', null)
+  const [activeWorkout, setActiveWorkout] = useLocalStorage<Workout | null>('active-workout', null)
   const [showChecklist, setShowChecklist] = useState(false)
+  const [workoutToDelete, setWorkoutToDelete] = useState<Workout | null>(null)
+  const [showDeleteActiveDialog, setShowDeleteActiveDialog] = useState(false)
 
   const daysSince = getDaysSinceLastWorkout(workouts)
   const streak = getWorkoutStreak(workouts)
@@ -40,6 +52,26 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
     } else {
       onStartWorkout()
     }
+  }
+
+  const handleDeleteWorkout = (workout: Workout) => {
+    setWorkoutToDelete(workout)
+  }
+
+  const confirmDeleteWorkout = () => {
+    if (workoutToDelete) {
+      setWorkouts(prev => prev.filter(w => w.id !== workoutToDelete.id))
+      setWorkoutToDelete(null)
+    }
+  }
+
+  const handleDeleteActiveWorkout = () => {
+    setShowDeleteActiveDialog(true)
+  }
+
+  const confirmDeleteActiveWorkout = () => {
+    setActiveWorkout(null)
+    setShowDeleteActiveDialog(false)
   }
 
   return (
@@ -74,9 +106,19 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
                 {activeWorkout.type} • In progress
               </p>
             </div>
-            <Button onClick={onStartWorkout}>
-              Continue
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleDeleteActiveWorkout}
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <Trash size={20} />
+              </Button>
+              <Button onClick={onStartWorkout}>
+                Continue
+              </Button>
+            </div>
           </div>
         </Card>
       )}
@@ -129,13 +171,23 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
                       })}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">
-                      {workout.exercises.length} exercises
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {workout.exercises.filter(e => e.completed).length} completed
-                    </p>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="text-sm font-medium">
+                        {workout.exercises.length} exercises
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {workout.exercises.filter(e => e.completed).length} completed
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteWorkout(workout)}
+                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash size={18} />
+                    </Button>
                   </div>
                 </div>
               </Card>
@@ -159,6 +211,53 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
         checklistItems={checklistItems}
         onContinue={onStartWorkout}
       />
+
+      {/* Delete Completed Workout Confirmation */}
+      <AlertDialog open={!!workoutToDelete} onOpenChange={(open) => !open && setWorkoutToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Workout?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete your {workoutToDelete?.type} workout from{' '}
+              {workoutToDelete && new Date(workoutToDelete.date).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              })}. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteWorkout}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete In-Progress Workout Confirmation */}
+      <AlertDialog open={showDeleteActiveDialog} onOpenChange={setShowDeleteActiveDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Discard In-Progress Workout?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will discard your current {activeWorkout?.type} workout. All progress will be lost. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteActiveWorkout}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Discard
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
