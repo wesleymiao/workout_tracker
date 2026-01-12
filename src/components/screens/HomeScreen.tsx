@@ -1,4 +1,4 @@
-import { useKV } from '@github/spark/hooks'
+import { useLocalStorage } from '@/hooks/use-local-storage'
 import { Plus, Fire, CheckCircle } from '@phosphor-icons/react'
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
@@ -15,27 +15,27 @@ interface HomeScreenProps {
 }
 
 export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
-  const [workouts] = useKV<Workout[]>('workouts', [])
-  const [checklistItems, setChecklistItems] = useKV<string[]>('checklist-items', [
+  const [workouts] = useLocalStorage<Workout[]>('workouts', [])
+  const [checklistItems, setChecklistItems] = useLocalStorage<string[]>('checklist-items', [
     'Water bottle',
     'Towel',
     'Headphones'
   ])
-  const [activeWorkout] = useKV<Workout | null>('active-workout', null)
+  const [activeWorkout] = useLocalStorage<Workout | null>('active-workout', null)
   const [showChecklist, setShowChecklist] = useState(false)
 
-  const daysSince = getDaysSinceLastWorkout(workouts ?? [])
-  const streak = getWorkoutStreak(workouts ?? [])
+  const daysSince = getDaysSinceLastWorkout(workouts)
+  const streak = getWorkoutStreak(workouts)
   const reminderThreshold = 3
   const showReminder = daysSince >= reminderThreshold
 
-  const recentWorkouts = (workouts ?? [])
+  const recentWorkouts = workouts
     .filter(w => w.completed)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 3)
 
   const handleStartWorkout = () => {
-    if ((checklistItems ?? []).length > 0) {
+    if (checklistItems.length > 0) {
       setShowChecklist(true)
     } else {
       onStartWorkout()
@@ -99,7 +99,7 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
             <span className="text-sm text-muted-foreground">Total</span>
           </div>
           <p className="text-3xl font-bold font-mono">
-            {(workouts ?? []).filter(w => w.completed).length}
+            {workouts.filter(w => w.completed).length}
           </p>
           <p className="text-xs text-muted-foreground mt-1">workouts</p>
         </Card>
@@ -156,7 +156,7 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
       <ChecklistDialog
         open={showChecklist}
         onOpenChange={setShowChecklist}
-        checklistItems={checklistItems ?? []}
+        checklistItems={checklistItems}
         onContinue={onStartWorkout}
       />
     </div>

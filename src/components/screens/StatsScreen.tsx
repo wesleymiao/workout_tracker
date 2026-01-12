@@ -1,4 +1,4 @@
-import { useKV } from '@github/spark/hooks'
+import { useLocalStorage } from '@/hooks/use-local-storage'
 import { Workout, WorkoutType } from '@/lib/types'
 import { Card } from '../ui/card'
 import { CheckCircle, Fire, Barbell, TrendUp, CaretLeft, CaretRight, Clock } from '@phosphor-icons/react'
@@ -27,12 +27,12 @@ const getWorkoutTypeColor = (type: WorkoutType): string => {
 }
 
 export default function StatsScreen() {
-  const [workouts] = useKV<Workout[]>('workouts', [])
+  const [workouts] = useLocalStorage<Workout[]>('workouts', [])
   const [duration, setDuration] = useState<Duration>('30')
   const [currentMonth, setCurrentMonth] = useState(() => new Date())
 
   const completedWorkouts = useMemo(() => {
-    return (workouts ?? []).filter(w => w.completed)
+    return workouts.filter(w => w.completed)
   }, [workouts])
 
   const filteredWorkouts = useMemo(() => {

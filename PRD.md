@@ -8,7 +8,7 @@ A mobile-first workout tracking application that helps users plan, execute, and 
 3. **Reliable** - Data persists locally; works offline; optimized for quick loading on mobile
 
 **Complexity Level**: Light Application (multiple features with basic state)
-This app manages workout sessions, exercise tracking, and historical data with straightforward CRUD operations and some smart auto-fill logic, but doesn't require complex algorithms or multi-user features.
+This app manages workout sessions, exercise tracking, and historical data with straightforward CRUD operations and some smart auto-fill logic, but doesn't require complex algorithms or multi-user features. Data persists using browser localStorage for client-side storage.
 
 ## Essential Features
 
@@ -67,7 +67,9 @@ This app manages workout sessions, exercise tracking, and historical data with s
 - **Mid-Workout Exit**: In-progress workout auto-saves; resume banner appears on return
 - **Invalid Inputs**: Weight/rep/set fields validate for positive numbers; distance/duration require proper formats
 - **Checklist Empty**: If no items configured, skip directly to workout type selection
-- **Network Offline**: All features work offline since data persists locally
+- **Network Offline**: All features work offline since data persists in browser localStorage
+- **Storage Limits**: Browser localStorage has 5-10MB limit; workout data optimized to stay well below threshold
+- **Browser Data Clear**: User can export workout history; import on new device or after data loss
 - **Long Exercise Names**: Text truncates with ellipsis; full name visible on tap
 
 ## Design Direction

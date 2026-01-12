@@ -1,4 +1,4 @@
-import { useKV } from '@github/spark/hooks'
+import { useLocalStorage } from '@/hooks/use-local-storage'
 import { useState } from 'react'
 import { Workout, Exercise, EquipmentExercise, CardioExercise } from '@/lib/types'
 import { Card } from './ui/card'
@@ -17,12 +17,12 @@ interface ExerciseListProps {
 }
 
 export default function ExerciseList({ workout, onUpdateWorkout }: ExerciseListProps) {
-  const [workouts] = useKV<Workout[]>('workouts', [])
+  const [workouts] = useLocalStorage<Workout[]>('workouts', [])
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [exerciseType, setExerciseType] = useState<'equipment' | 'cardio'>('equipment')
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null)
 
-  const lastWorkout = getLastWorkoutOfType(workouts ?? [], workout.type)
+  const lastWorkout = getLastWorkoutOfType(workouts, workout.type)
 
   const handleAddExercise = () => {
     setEditingExercise(null)

@@ -1,4 +1,4 @@
-import { useKV } from '@github/spark/hooks'
+import { useLocalStorage } from '@/hooks/use-local-storage'
 import { useState } from 'react'
 import { Workout, WorkoutType, Exercise } from '@/lib/types'
 import { Button } from '../ui/button'
@@ -10,8 +10,8 @@ import { CheckCircle, Timer } from '@phosphor-icons/react'
 import { formatDuration } from '@/lib/workout-utils'
 
 export default function ActiveWorkoutScreen() {
-  const [activeWorkout, setActiveWorkout] = useKV<Workout | null>('active-workout', null)
-  const [workouts, setWorkouts] = useKV<Workout[]>('workouts', [])
+  const [activeWorkout, setActiveWorkout] = useLocalStorage<Workout | null>('active-workout', null)
+  const [workouts, setWorkouts] = useLocalStorage<Workout[]>('workouts', [])
   const [showSummary, setShowSummary] = useState(false)
 
   const handleSelectWorkoutType = (type: WorkoutType) => {
@@ -35,7 +35,7 @@ export default function ActiveWorkoutScreen() {
       completed: true
     }
 
-    setWorkouts(prev => [...(prev ?? []), completedWorkout])
+    setWorkouts((currentWorkouts) => [...currentWorkouts, completedWorkout])
     setShowSummary(true)
   }
 

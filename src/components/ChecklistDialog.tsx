@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useKV } from '@github/spark/hooks'
+import { useLocalStorage } from '@/hooks/use-local-storage'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog'
 import { Button } from './ui/button'
 import { Checkbox } from './ui/checkbox'
@@ -20,7 +20,7 @@ export default function ChecklistDialog({
   checklistItems,
   onContinue
 }: ChecklistDialogProps) {
-  const [items, setItems] = useKV<string[]>('checklist-items', checklistItems)
+  const [items, setItems] = useLocalStorage<string[]>('checklist-items', checklistItems)
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set())
   const [newItem, setNewItem] = useState('')
 
@@ -36,13 +36,13 @@ export default function ChecklistDialog({
 
   const handleAddItem = () => {
     if (newItem.trim()) {
-      setItems(prev => [...(prev ?? []), newItem.trim()])
+      setItems((currentItems) => [...currentItems, newItem.trim()])
       setNewItem('')
     }
   }
 
   const handleRemoveItem = (itemToRemove: string) => {
-    setItems(prev => (prev ?? []).filter(item => item !== itemToRemove))
+    setItems((currentItems) => currentItems.filter(item => item !== itemToRemove))
   }
 
   const handleContinue = () => {
@@ -59,7 +59,7 @@ export default function ChecklistDialog({
         </DialogHeader>
 
         <div className="space-y-3 py-4">
-          {(items ?? []).map((item) => (
+          {items.map((item) => (
             <div key={item} className="flex items-center gap-3 group">
               <Checkbox
                 id={item}
@@ -84,7 +84,7 @@ export default function ChecklistDialog({
             </div>
           ))}
 
-          {(items ?? []).length === 0 && (
+          {items.length === 0 && (
             <p className="text-center text-muted-foreground py-4">
               No checklist items. Add your first item below.
             </p>
