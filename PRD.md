@@ -66,10 +66,16 @@ This app manages workout sessions, exercise tracking, and historical data with s
 
 ### Analytics Dashboard
 - **Functionality**: Charts showing workout frequency, volume progression, personal records
-- **Purpose**: Visualizes progress to maintain motivation
+- **Calendar View**: Activity calendar displays actual workout details in each cell instead of colored dots
+  - **Swim workouts**: Shows "Swim: 800m" with actual/target distance in meters
+  - **Run workouts**: Shows "Run: 5km" with actual/target distance in kilometers  
+  - **Strength workouts**: Shows "Pull", "Push", or "Legs" as simple labels
+  - Multiple workouts per day stack vertically (max 2 shown, with "+N" indicator for more)
+  - Color-coded text matches workout type colors for quick visual identification
+- **Purpose**: Visualizes progress to maintain motivation; at-a-glance view of workout history with meaningful details
 - **Trigger**: User taps "Statistics" tab
-- **Progression**: Tab navigation → Dashboard with charts → Drill down into specific exercises
-- **Success criteria**: Charts render historical data; updates after each workout; highlights trends
+- **Progression**: Tab navigation → Dashboard with calendar and charts → Drill down into specific exercises
+- **Success criteria**: Calendar shows workout details instantly; charts render historical data; updates after each workout; highlights trends
 
 ### Smart Reminders
 - **Functionality**: Detects declining workout frequency; displays motivational prompt on home screen

@@ -26,6 +26,50 @@ const getWorkoutTypeColor = (type: WorkoutType): string => {
   }
 }
 
+const getWorkoutTypeTextColor = (type: WorkoutType): string => {
+  switch (type) {
+    case 'Pull':
+      return 'text-blue-400'
+    case 'Push':
+      return 'text-red-400'
+    case 'Legs':
+      return 'text-green-400'
+    case 'Swim':
+      return 'text-cyan-400'
+    case 'Run (Gym)':
+      return 'text-orange-400'
+    case 'Run (Outdoor)':
+      return 'text-purple-400'
+  }
+}
+
+const formatWorkoutLabel = (workout: Workout): string => {
+  if (workout.type === 'Swim') {
+    const swimEx = workout.exercises.find(e => e.type === 'swim')
+    if (swimEx && 'actualDistance' in swimEx && swimEx.actualDistance) {
+      return `Swim: ${swimEx.actualDistance}m`
+    }
+    if (swimEx && 'targetDistance' in swimEx) {
+      return `Swim: ${swimEx.targetDistance}m`
+    }
+    return 'Swim'
+  }
+  
+  if (workout.type === 'Run (Gym)' || workout.type === 'Run (Outdoor)') {
+    const runEx = workout.exercises.find(e => e.type === 'run')
+    if (runEx && 'actualDistance' in runEx && runEx.actualDistance) {
+      return `Run: ${runEx.actualDistance}km`
+    }
+    if (runEx && 'targetDistance' in runEx) {
+      return `Run: ${runEx.targetDistance}km`
+    }
+    return workout.type === 'Run (Gym)' ? 'Run' : 'Run'
+  }
+  
+  // For Pull, Push, Legs - just return the type
+  return workout.type
+}
+
 export default function StatsScreen() {
   const [workouts] = useLocalStorage<Workout[]>('workouts', [])
   const [duration, setDuration] = useState<Duration>('30')
@@ -105,10 +149,10 @@ export default function StatsScreen() {
     const startPadding = firstDay.getDay()
     const daysInMonth = lastDay.getDate()
 
-    const days: Array<{ date: Date | null; workoutCount: number; workoutTypes: WorkoutType[] }> = []
+    const days: Array<{ date: Date | null; workouts: Workout[] }> = []
 
     for (let i = 0; i < startPadding; i++) {
-      days.push({ date: null, workoutCount: 0, workoutTypes: [] })
+      days.push({ date: null, workouts: [] })
     }
 
     for (let day = 1; day <= daysInMonth; day++) {
@@ -122,8 +166,7 @@ export default function StatsScreen() {
 
       days.push({
         date,
-        workoutCount: dayWorkouts.length,
-        workoutTypes: dayWorkouts.map(w => w.type)
+        workouts: dayWorkouts
       })
     }
 
@@ -191,31 +234,38 @@ export default function StatsScreen() {
           <div className="grid grid-cols-7 gap-1">
             {calendarDays.map((day, i) => {
               if (!day.date) {
-                return <div key={i} className="aspect-square" />
+                return <div key={i} className="min-h-[60px]" />
               }
 
               const isToday = day.date.toDateString() === new Date().toDateString()
+              const hasWorkouts = day.workouts.length > 0
 
               return (
                 <div
                   key={i}
-                  className={`aspect-square rounded-md flex flex-col items-center justify-center text-xs font-medium transition-all p-0.5 ${
-                    day.workoutCount === 0
+                  className={`min-h-[60px] rounded-md flex flex-col items-center p-1 transition-all ${
+                    !hasWorkouts
                       ? 'bg-secondary/30 text-muted-foreground'
-                      : 'bg-accent/20 text-accent-foreground border border-accent/30'
+                      : 'bg-accent/10 text-accent-foreground border border-accent/30'
                   } ${
                     isToday ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : ''
                   }`}
                 >
-                  <div className="text-[10px] font-medium">{day.date.getDate()}</div>
-                  {day.workoutCount > 0 && (
-                    <div className="flex flex-wrap gap-[1px] justify-center mt-0.5">
-                      {day.workoutTypes.map((type, idx) => (
+                  <div className="text-[10px] font-medium mb-0.5">{day.date.getDate()}</div>
+                  {hasWorkouts && (
+                    <div className="flex flex-col items-center gap-0.5 w-full overflow-hidden">
+                      {day.workouts.slice(0, 2).map((workout, idx) => (
                         <div
                           key={idx}
-                          className={`w-1 h-1 rounded-full ${getWorkoutTypeColor(type)}`}
-                        />
+                          className={`text-[7px] font-medium leading-tight text-center truncate w-full px-0.5 ${getWorkoutTypeTextColor(workout.type)}`}
+                          title={formatWorkoutLabel(workout)}
+                        >
+                          {formatWorkoutLabel(workout)}
+                        </div>
                       ))}
+                      {day.workouts.length > 2 && (
+                        <div className="text-[6px] text-muted-foreground">+{day.workouts.length - 2}</div>
+                      )}
                     </div>
                   )}
                 </div>

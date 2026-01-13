@@ -134,6 +134,8 @@ export default function ExercisePlanner({ workout, onUpdateWorkout, onStartWorko
 
   // Render based on workout type
   if (isSwimWorkout(workout.type)) {
+    const swimPresets = [1000, 800, 700]
+    
     return (
       <div className="space-y-6">
         <Card className="p-6">
@@ -146,12 +148,31 @@ export default function ExercisePlanner({ workout, onUpdateWorkout, onStartWorko
               <p className="text-sm text-muted-foreground">Set your distance goal</p>
             </div>
           </div>
+          
+          {/* Preset buttons */}
+          <div className="mb-4">
+            <Label className="mb-2 block">Quick Select</Label>
+            <div className="flex gap-2 flex-wrap">
+              {swimPresets.map((preset) => (
+                <Button
+                  key={preset}
+                  variant={swimDistance === preset.toString() ? 'default' : 'outline'}
+                  size="lg"
+                  className="flex-1 min-w-[80px] h-12 font-mono text-lg"
+                  onClick={() => handleSwimDistanceChange(preset.toString())}
+                >
+                  {preset}m
+                </Button>
+              ))}
+            </div>
+          </div>
+          
           <div className="space-y-2">
-            <Label htmlFor="swim-distance">Target Distance (meters)</Label>
+            <Label htmlFor="swim-distance">Custom Distance (meters)</Label>
             <Input
               id="swim-distance"
               type="number"
-              placeholder="e.g. 1000"
+              placeholder="e.g. 1500"
               value={swimDistance}
               onChange={(e) => handleSwimDistanceChange(e.target.value)}
               className="text-xl font-mono h-14"
@@ -172,6 +193,8 @@ export default function ExercisePlanner({ workout, onUpdateWorkout, onStartWorko
   }
 
   if (isRunWorkout(workout.type)) {
+    const runPresets = [3, 5, 8, 10]
+    
     return (
       <div className="space-y-6">
         <Card className="p-6">
@@ -186,13 +209,32 @@ export default function ExercisePlanner({ workout, onUpdateWorkout, onStartWorko
               </p>
             </div>
           </div>
+          
+          {/* Preset buttons */}
+          <div className="mb-4">
+            <Label className="mb-2 block">Quick Select</Label>
+            <div className="flex gap-2 flex-wrap">
+              {runPresets.map((preset) => (
+                <Button
+                  key={preset}
+                  variant={runDistance === preset.toString() ? 'default' : 'outline'}
+                  size="lg"
+                  className="flex-1 min-w-[70px] h-12 font-mono text-lg"
+                  onClick={() => handleRunDistanceChange(preset.toString())}
+                >
+                  {preset}km
+                </Button>
+              ))}
+            </div>
+          </div>
+          
           <div className="space-y-2">
-            <Label htmlFor="run-distance">Target Distance (km)</Label>
+            <Label htmlFor="run-distance">Custom Distance (km)</Label>
             <Input
               id="run-distance"
               type="number"
               step="0.1"
-              placeholder="e.g. 5.0"
+              placeholder="e.g. 7.5"
               value={runDistance}
               onChange={(e) => handleRunDistanceChange(e.target.value)}
               className="text-xl font-mono h-14"
