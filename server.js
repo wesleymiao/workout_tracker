@@ -12,11 +12,16 @@ const port = process.env.PORT || 8080;
 // JSON body parser
 app.use(express.json());
 
-// Path to data storage file - use /home on Azure for persistence
-const DATA_DIR = process.env.HOME 
-  ? path.join(process.env.HOME, 'data')
-  : __dirname;
+// Path to data storage file
+// On Azure App Service: use /home/data (persistent across deployments)
+// Locally: use project directory
+const isAzure = process.env.WEBSITE_INSTANCE_ID || process.env.WEBSITE_SITE_NAME;
+const DATA_DIR = isAzure 
+  ? '/home/data'
+  : path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'data.json');
+
+console.log(`Data storage location: ${DATA_FILE}`);
 
 // Ensure data.json exists
 function ensureDataFile() {
