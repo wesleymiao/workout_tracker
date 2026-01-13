@@ -2,13 +2,9 @@ import { useLocalStorage } from '@/hooks/use-local-storage'
 import { Plus, Fire, CheckCircle, Trash } from '@phosphor-icons/react'
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog'
-import { Checkbox } from '../ui/checkbox'
-import { Input } from '../ui/input'
 import { useState } from 'react'
-import { Workout, ChecklistItem } from '@/lib/types'
-import { getDaysSinceLastWorkout, getWorkoutStreak, generateId } from '@/lib/workout-utils'
-import ChecklistDialog from '../ChecklistDialog'
+import { Workout, WorkoutType, isSwimWorkout, isRunWorkout } from '@/lib/types'
+import { getDaysSinceLastWorkout, getWorkoutStreak } from '@/lib/workout-utils'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,13 +22,7 @@ interface HomeScreenProps {
 
 export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
   const [workouts, setWorkouts] = useLocalStorage<Workout[]>('workouts', [])
-  const [checklistItems, setChecklistItems] = useLocalStorage<string[]>('checklist-items', [
-    'Water bottle',
-    'Towel',
-    'Headphones'
-  ])
   const [activeWorkout, setActiveWorkout] = useLocalStorage<Workout | null>('active-workout', null)
-  const [showChecklist, setShowChecklist] = useState(false)
   const [workoutToDelete, setWorkoutToDelete] = useState<Workout | null>(null)
   const [showDeleteActiveDialog, setShowDeleteActiveDialog] = useState(false)
 
@@ -47,11 +37,7 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
     .slice(0, 3)
 
   const handleStartWorkout = () => {
-    if (checklistItems.length > 0) {
-      setShowChecklist(true)
-    } else {
-      onStartWorkout()
-    }
+    onStartWorkout()
   }
 
   const handleDeleteWorkout = (workout: Workout) => {
@@ -72,6 +58,21 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
   const confirmDeleteActiveWorkout = () => {
     setActiveWorkout(null)
     setShowDeleteActiveDialog(false)
+  }
+
+  const getExerciseInfo = (workout: Workout) => {
+    if (isSwimWorkout(workout.type)) {
+      const swimEx = workout.exercises.find(e => e.type === 'swim')
+      if (swimEx && 'targetDistance' in swimEx) {
+        return `${swimEx.targetDistance}m`
+      }
+    } else if (isRunWorkout(workout.type)) {
+      const runEx = workout.exercises.find(e => e.type === 'run')
+      if (runEx && 'targetDistance' in runEx) {
+        return `${runEx.targetDistance}km`
+      }
+    }
+    return `${workout.exercises.length} exercises`
   }
 
   return (
@@ -174,7 +175,7 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
                   <div className="flex items-center gap-3">
                     <div className="text-right">
                       <p className="text-sm font-medium">
-                        {workout.exercises.length} exercises
+                        {getExerciseInfo(workout)}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {workout.exercises.filter(e => e.completed).length} completed
@@ -204,13 +205,6 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
         <Plus size={24} weight="bold" />
         Start Workout
       </Button>
-
-      <ChecklistDialog
-        open={showChecklist}
-        onOpenChange={setShowChecklist}
-        checklistItems={checklistItems}
-        onContinue={onStartWorkout}
-      />
 
       {/* Delete Completed Workout Confirmation */}
       <AlertDialog open={!!workoutToDelete} onOpenChange={(open) => !open && setWorkoutToDelete(null)}>

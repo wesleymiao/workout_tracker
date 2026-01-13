@@ -1,8 +1,9 @@
-import { Workout } from '@/lib/types'
+import { Workout, isSwimWorkout, isRunWorkout } from '@/lib/types'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
-import { CheckCircle, Timer, Barbell, Fire } from '@phosphor-icons/react'
+import { CheckCircle, Timer, Barbell, Fire, Confetti, Trophy } from '@phosphor-icons/react'
 import { formatDuration, getTotalVolume } from '@/lib/workout-utils'
+import { useState, useEffect } from 'react'
 
 interface WorkoutSummaryProps {
   workout: Workout
@@ -10,22 +11,69 @@ interface WorkoutSummaryProps {
 }
 
 export default function WorkoutSummary({ workout, onClose }: WorkoutSummaryProps) {
+  const [showConfetti, setShowConfetti] = useState(true)
   const duration = formatDuration(workout.startTime, workout.endTime)
   const completedExercises = workout.exercises.filter(e => e.completed).length
   const totalVolume = getTotalVolume(workout)
+  const allCompleted = completedExercises === workout.exercises.length && workout.exercises.length > 0
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowConfetti(false), 3000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  const getDistanceSummary = () => {
+    if (isSwimWorkout(workout.type)) {
+      const swimEx = workout.exercises.find(e => e.type === 'swim')
+      if (swimEx && 'actualDistance' in swimEx && swimEx.actualDistance) {
+        return `${swimEx.actualDistance}m swam`
+      }
+      if (swimEx && 'targetDistance' in swimEx) {
+        return `${swimEx.targetDistance}m target`
+      }
+    }
+    if (isRunWorkout(workout.type)) {
+      const runEx = workout.exercises.find(e => e.type === 'run')
+      if (runEx && 'actualDistance' in runEx && runEx.actualDistance) {
+        return `${runEx.actualDistance}km ran`
+      }
+      if (runEx && 'targetDistance' in runEx) {
+        return `${runEx.targetDistance}km target`
+      }
+    }
+    return null
+  }
+
+  const distanceSummary = getDistanceSummary()
 
   return (
-    <div className="p-4 space-y-6 min-h-screen flex flex-col">
+    <div className="p-4 space-y-6 min-h-screen flex flex-col relative overflow-hidden">
+      {/* Confetti animation */}
+      {showConfetti && allCompleted && (
+        <div className="absolute inset-0 pointer-events-none z-10 flex items-start justify-center pt-20">
+          <div className="animate-confetti-fall">
+            <Confetti size={80} className="text-accent" weight="fill" />
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 space-y-6">
         <div className="text-center space-y-2 py-6">
-          <div className="w-16 h-16 mx-auto rounded-full bg-accent/20 flex items-center justify-center mb-4">
-            <CheckCircle size={40} weight="fill" className="text-accent" />
+          <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 ${allCompleted ? 'bg-accent/20 animate-bounce-slow' : 'bg-accent/20'}`}>
+            {allCompleted ? (
+              <Trophy size={40} weight="fill" className="text-accent" />
+            ) : (
+              <CheckCircle size={40} weight="fill" className="text-accent" />
+            )}
           </div>
           <h1 className="text-[32px] font-bold tracking-tight leading-[1.1]">
-            Workout Complete!
+            {allCompleted ? 'Perfect Workout!' : 'Workout Complete!'}
           </h1>
           <p className="text-muted-foreground">
-            Great job on your {workout.type} session
+            {allCompleted 
+              ? `Amazing! You crushed your ${workout.type} session!` 
+              : `Great job on your ${workout.type} session`
+            }
           </p>
         </div>
 
@@ -41,9 +89,10 @@ export default function WorkoutSummary({ workout, onClose }: WorkoutSummaryProps
           <Card className="p-4">
             <div className="flex items-center gap-2 mb-2">
               <CheckCircle size={20} className="text-accent" weight="fill" />
-              <span className="text-sm text-muted-foreground">Exercises</span>
+              <span className="text-sm text-muted-foreground">Completed</span>
             </div>
             <p className="text-3xl font-bold font-mono">{completedExercises}</p>
+            <p className="text-xs text-muted-foreground">of {workout.exercises.length}</p>
           </Card>
         </div>
 
@@ -57,35 +106,45 @@ export default function WorkoutSummary({ workout, onClose }: WorkoutSummaryProps
           </Card>
         )}
 
-        <div>
-          <h2 className="text-xl font-semibold mb-3">Exercises Completed</h2>
-          <div className="space-y-2">
-            {workout.exercises
-              .filter(e => e.completed)
-              .map((exercise) => (
-                <Card key={exercise.id} className="p-3">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle size={18} weight="fill" className="text-accent flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium">{exercise.name}</h3>
-                      {exercise.type === 'equipment' && (
-                        <p className="text-sm text-muted-foreground font-mono">
-                          {exercise.weight}kg × {exercise.targetReps} × {exercise.completedSets}
-                        </p>
-                      )}
-                      {exercise.type === 'cardio' && (
-                        <p className="text-sm text-muted-foreground font-mono">
-                          {exercise.targetDistance && `${exercise.targetDistance}km`}
-                          {exercise.targetDistance && exercise.targetDuration && ' • '}
-                          {exercise.targetDuration && `${exercise.targetDuration}min`}
-                        </p>
-                      )}
+        {distanceSummary && (
+          <Card className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Fire size={20} className="text-accent" weight="fill" />
+              <span className="text-sm text-muted-foreground">Distance</span>
+            </div>
+            <p className="text-3xl font-bold font-mono">{distanceSummary}</p>
+          </Card>
+        )}
+
+        {workout.exercises.length > 0 && workout.exercises.some(e => e.type === 'equipment' || e.type === 'cardio') && (
+          <div>
+            <h2 className="text-xl font-semibold mb-3">Exercises Completed</h2>
+            <div className="space-y-2">
+              {workout.exercises
+                .filter(e => e.completed && (e.type === 'equipment' || e.type === 'cardio'))
+                .map((exercise) => (
+                  <Card key={exercise.id} className="p-3">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle size={18} weight="fill" className="text-accent flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium">{exercise.name}</h3>
+                        {exercise.type === 'equipment' && (
+                          <p className="text-sm text-muted-foreground font-mono">
+                            {exercise.weight}kg × {exercise.targetReps} × {exercise.completedSets}
+                          </p>
+                        )}
+                        {exercise.type === 'cardio' && (
+                          <p className="text-sm text-muted-foreground font-mono">
+                            {exercise.targetDistance}km
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {workout.exercises.some(e => !e.completed) && (
           <div>

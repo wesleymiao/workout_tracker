@@ -13,32 +13,49 @@ This app manages workout sessions, exercise tracking, and historical data with s
 ## Essential Features
 
 ### Pre-Workout Checklist
-- **Functionality**: Displays customizable checklist of items to bring (e.g., water bottle, towel, headphones)
+- **Functionality**: Displays dynamic checklist of items based on workout type selected
+  - **Common items** (all workout types): Water bottle, Towel, Headphones
+  - **Swim-specific items**: Swim bag
 - **Purpose**: Ensures user doesn't forget essentials before leaving for gym
-- **Trigger**: User taps "Start Workout" from home screen
-- **Progression**: Home → Checklist Modal → Check items → Select workout type → Exercise planning
-- **Success criteria**: User can add/remove/check items; checklist state persists between sessions
+- **Trigger**: After user selects workout type
+- **Progression**: Home → Select workout type → Checklist Modal → Check items → Exercise planning
+- **Success criteria**: User can add/remove/check items; checklist adapts to workout type; checklist state persists between sessions
 
 ### Workout Type Selection
 - **Functionality**: Choose from 6 workout types: Pull, Push, Legs, Swim, Run (Gym), Run (Outdoor)
-- **Purpose**: Categorizes workouts for smart pre-population and analytics
-- **Trigger**: After reviewing checklist
-- **Progression**: Checklist → Type selection cards → Exercise planning screen
-- **Success criteria**: Selection determines which previous workout data to load
+- **Purpose**: Categorizes workouts for smart pre-population and determines checklist items
+- **Trigger**: User taps "Start Workout" from home screen
+- **Progression**: Home → Type selection cards → Checklist Modal → Exercise planning screen
+- **Success criteria**: Selection determines which previous workout data to load and which checklist items to display
 
 ### Exercise Planning & Smart Pre-population
-- **Functionality**: Set targets for equipment (weight/reps/sets) or cardio (distance/duration); auto-fills from last workout of same type
-- **Purpose**: Speeds up planning while allowing progressive overload
+- **Functionality**: Set targets based on workout type with smart pre-population from recent history
+  - **Swim**: Target distance only (in meters)
+  - **Run (Gym) / Run (Outdoor)**: Target distance only (in kilometers)
+  - **Pull / Push / Legs**: Add equipment exercises (weight/reps/sets) and cardio exercises (distance only)
+- **Smart Pre-population**: Displays the last 5 workouts of the same type; user selects which workout to populate from (or starts fresh)
+- **Purpose**: Speeds up planning while allowing progressive overload; gives user control over which past workout to reference
 - **Trigger**: After workout type selection
-- **Progression**: Type selected → Previous data loads → User adjusts targets → Begins workout
-- **Success criteria**: Last workout data appears instantly; edits save; different data per workout type
+- **Progression**: Type selected → Past 5 workouts shown → User selects one to populate from (or skips) → Input fields appear based on workout type → User adjusts targets → Begins workout
+- **Success criteria**: Past 5 workouts load instantly; type-specific inputs display correctly; selected workout data populates fields; edits save; different data per workout type
 
 ### Real-time Exercise Logging
-- **Functionality**: Mark exercises complete; adjust actual values during workout (reps/sets/weight/distance/duration)
-- **Purpose**: Captures what actually happened vs. what was planned
+- **Functionality**: Mark exercises complete; adjust actual values during workout (reps/sets/weight/distance)
+- **Visual Encouragement**: Celebratory animations when completing pre-set targets
+  - Progress ring fills as sets/exercises are completed
+  - Confetti burst animation when all targets for an exercise are met
+  - Streak counter with fire icon pulses when hitting consecutive targets
+  - "Target achieved!" toast notification with checkmark animation
+  - Overall workout progress bar glows when approaching 100% completion
+- **Uncompleted Item Reminders**: Visual cues for incomplete exercises
+  - Unchecked items flicker with subtle pulsing border animation after 30 seconds of inactivity
+  - Intensity of flicker increases as workout duration extends without completion
+  - Badge showing "X remaining" bounces gently to draw attention
+  - Uncompleted exercises shift to amber/warning color tint after extended delay
+- **Purpose**: Captures what actually happened vs. what was planned; motivates users to complete all planned targets
 - **Trigger**: User completes a set or exercise
-- **Progression**: During workout → Tap exercise card → Mark set complete or adjust values → Return to list
-- **Success criteria**: Changes save immediately; visual feedback on completion; easy to undo mistakes
+- **Progression**: During workout → Tap exercise card → Mark set complete or adjust values → Celebration animation plays → Return to list
+- **Success criteria**: Changes save immediately; visual feedback on completion; animations feel rewarding without being intrusive; reminders encourage completion without being annoying; easy to undo mistakes
 
 ### Workout Summary & Completion
 - **Functionality**: "Finish Workout" button; displays duration, exercises completed, and notable achievements
@@ -66,7 +83,7 @@ This app manages workout sessions, exercise tracking, and historical data with s
 - **Empty History**: First-time users see empty exercise list with "Add Exercise" prompt
 - **Mid-Workout Exit**: In-progress workout auto-saves; resume banner appears on return
 - **Invalid Inputs**: Weight/rep/set fields validate for positive numbers; distance/duration require proper formats
-- **Checklist Empty**: If no items configured, skip directly to workout type selection
+- **Checklist Empty**: If no items configured, skip directly to exercise planning
 - **Network Offline**: All features work offline since data persists in browser localStorage
 - **Storage Limits**: Browser localStorage has 5-10MB limit; workout data optimized to stay well below threshold
 - **Browser Data Clear**: User can export workout history; import on new device or after data loss

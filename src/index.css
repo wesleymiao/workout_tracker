@@ -76,15 +76,68 @@
   --radius-full: 9999px;
 }
 
+/* Shake animation for errors */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-4px); }
   75% { transform: translateX(4px); }
 }
 
+/* Pulse scale for completion */
 @keyframes pulse-scale {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.05); }
+}
+
+/* Completion pulse animation */
+@keyframes completion-pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 var(--accent); }
+  50% { transform: scale(1.02); box-shadow: 0 0 20px 4px var(--accent); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 var(--accent); }
+}
+
+/* Flicker animation for uncompleted items */
+@keyframes flicker {
+  0%, 100% { 
+    border-color: rgba(251, 191, 36, 0.3);
+    background-color: transparent;
+  }
+  50% { 
+    border-color: rgba(251, 191, 36, 0.7);
+    background-color: rgba(251, 191, 36, 0.05);
+  }
+}
+
+/* Confetti burst animation */
+@keyframes confetti-burst {
+  0% { transform: scale(0) rotate(0deg); opacity: 0; }
+  50% { transform: scale(1.5) rotate(180deg); opacity: 1; }
+  100% { transform: scale(1) rotate(360deg); opacity: 0; }
+}
+
+/* Confetti fall animation */
+@keyframes confetti-fall {
+  0% { transform: translateY(-100px) rotate(0deg); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateY(200px) rotate(720deg); opacity: 0; }
+}
+
+/* Glow animation for progress bar */
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 5px var(--accent); }
+  50% { box-shadow: 0 0 20px var(--accent), 0 0 30px var(--accent); }
+}
+
+/* Pulse glow for finish button */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent); }
+  50% { box-shadow: 0 0 20px 8px var(--accent); }
+}
+
+/* Bounce slow for trophy */
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
 .animate-shake {
@@ -93,4 +146,32 @@
 
 .animate-pulse-scale {
   animation: pulse-scale 0.4s ease-in-out;
+}
+
+.animate-completion-pulse {
+  animation: completion-pulse 0.6s ease-out;
+}
+
+.animate-flicker {
+  animation: flicker 1.5s ease-in-out infinite;
+}
+
+.animate-confetti-burst {
+  animation: confetti-burst 1.5s ease-out forwards;
+}
+
+.animate-confetti-fall {
+  animation: confetti-fall 2s ease-out forwards;
+}
+
+.animate-glow {
+  animation: glow 1.5s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 2s ease-in-out infinite;
 }

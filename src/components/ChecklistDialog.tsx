@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocalStorage } from '@/hooks/use-local-storage'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog'
 import { Button } from './ui/button'
@@ -6,23 +6,46 @@ import { Checkbox } from './ui/checkbox'
 import { Input } from './ui/input'
 import { Plus, Trash } from '@phosphor-icons/react'
 import { generateId } from '@/lib/workout-utils'
+import { WorkoutType } from '@/lib/types'
 
 interface ChecklistDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   checklistItems: string[]
+  workoutType: WorkoutType
   onContinue: () => void
 }
+
+// Default checklist items based on workout type
+const DEFAULT_COMMON_ITEMS = ['Water bottle', 'Towel', 'Headphones']
+const SWIM_SPECIFIC_ITEMS = ['Swim bag']
 
 export default function ChecklistDialog({
   open,
   onOpenChange,
   checklistItems,
+  workoutType,
   onContinue
 }: ChecklistDialogProps) {
   const [items, setItems] = useLocalStorage<string[]>('checklist-items', checklistItems)
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set())
   const [newItem, setNewItem] = useState('')
+
+  // Get checklist items based on workout type
+  const getChecklistItems = () => {
+    const allItems = [...items]
+    if (workoutType === 'Swim') {
+      // Add swim-specific items if not already present
+      SWIM_SPECIFIC_ITEMS.forEach(item => {
+        if (!allItems.includes(item)) {
+          allItems.push(item)
+        }
+      })
+    }
+    return allItems
+  }
+
+  const displayItems = getChecklistItems()
 
   const handleToggle = (item: string) => {
     const updated = new Set(checkedItems)
@@ -59,7 +82,7 @@ export default function ChecklistDialog({
         </DialogHeader>
 
         <div className="space-y-3 py-4">
-          {items.map((item) => (
+          {displayItems.map((item) => (
             <div key={item} className="flex items-center gap-3 group">
               <Checkbox
                 id={item}
@@ -73,18 +96,20 @@ export default function ChecklistDialog({
               >
                 {item}
               </label>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleRemoveItem(item)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <Trash size={18} />
-              </Button>
+              {!SWIM_SPECIFIC_ITEMS.includes(item) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleRemoveItem(item)}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Trash size={18} />
+                </Button>
+              )}
             </div>
           ))}
 
-          {items.length === 0 && (
+          {displayItems.length === 0 && (
             <p className="text-center text-muted-foreground py-4">
               No checklist items. Add your first item below.
             </p>

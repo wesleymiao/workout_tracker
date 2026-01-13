@@ -10,6 +10,13 @@ export function getLastWorkoutOfType(workouts: Workout[], type: WorkoutType): Wo
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
 }
 
+export function getLast5WorkoutsOfType(workouts: Workout[], type: WorkoutType): Workout[] {
+  return workouts
+    .filter(w => w.type === type && w.completed)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 5)
+}
+
 export function formatDuration(startTime: string, endTime?: string): string {
   if (!endTime) return '0m'
   
