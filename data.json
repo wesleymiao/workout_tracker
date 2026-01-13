@@ -1,0 +1,67 @@
+{
+  "active-workout": null,
+  "workouts": [
+    {
+      "id": "1768272332247",
+      "type": "Swim",
+      "date": "2026-01-13T02:45:32.247Z",
+      "startTime": "2026-01-13T02:45:32.247Z",
+      "exercises": [
+        {
+          "id": "mkbzox3pshi7wjdy76p",
+          "type": "swim",
+          "targetDistance": 1000,
+          "completed": true
+        }
+      ],
+      "completed": true,
+      "endTime": "2026-01-13T02:45:38.930Z"
+    },
+    {
+      "id": "1768272356930",
+      "type": "Pull",
+      "date": "2026-01-13T02:45:56.930Z",
+      "startTime": "2026-01-13T02:45:56.930Z",
+      "exercises": [
+        {
+          "id": "mkbzpk2z286cso3kw0j",
+          "type": "equipment",
+          "name": "1",
+          "weight": 100,
+          "targetReps": 12,
+          "targetSets": 3,
+          "completedSets": 3,
+          "completed": true
+        },
+        {
+          "id": "mkbzpmp5xmkvde1d1u",
+          "type": "equipment",
+          "name": "2",
+          "weight": 100,
+          "targetReps": 12,
+          "targetSets": 3,
+          "completedSets": 3,
+          "completed": true
+        }
+      ],
+      "completed": true,
+      "endTime": "2026-01-13T02:46:12.559Z"
+    },
+    {
+      "id": "1768272575513",
+      "type": "Run (Outdoor)",
+      "date": "2026-01-13T02:49:35.513Z",
+      "startTime": "2026-01-13T02:49:35.513Z",
+      "exercises": [
+        {
+          "id": "mkbzu4z9lm01mqxq1bh",
+          "type": "run",
+          "targetDistance": 5,
+          "completed": true
+        }
+      ],
+      "completed": true,
+      "endTime": "2026-01-13T02:49:41.789Z"
+    }
+  ]
+}
