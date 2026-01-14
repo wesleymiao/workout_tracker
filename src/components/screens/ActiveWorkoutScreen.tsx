@@ -24,7 +24,8 @@ interface ActiveWorkoutScreenProps {
 export default function ActiveWorkoutScreen({ isPastWorkoutMode = false, onExitPastWorkoutMode }: ActiveWorkoutScreenProps) {
   const [activeWorkout, setActiveWorkout] = useLocalStorage<Workout | null>('active-workout', null)
   const [workouts, setWorkouts] = useLocalStorage<Workout[]>('workouts', [])
-  const [checklistItems] = useLocalStorage<string[]>('checklist-items', ['Water bottle', 'Towel', 'Headphones'])
+  const DEFAULT_CHECKLIST_ITEMS = ['水壶', '毛巾', '耳机', '拖鞋']
+  const [checklistItems, setChecklistItems] = useLocalStorage<string[]>('checklist-items', DEFAULT_CHECKLIST_ITEMS)
   const [showSummary, setShowSummary] = useState(false)
   const [selectedType, setSelectedType] = useState<WorkoutType | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
@@ -39,11 +40,28 @@ export default function ActiveWorkoutScreen({ isPastWorkoutMode = false, onExitP
           return 'active'
         }
       } catch (e) {
+        // Merge any missing default checklist items into stored list
+        useEffect(() => {
+          setChecklistItems((prev) => Array.from(new Set([...(prev ?? []), ...DEFAULT_CHECKLIST_ITEMS])))
+        }, [])
+
         // ignore parse errors
       }
     }
     return 'type-selection'
   })
+
+  const [pastDuration, setPastDuration] = useState(60) // default 60 minutes
+
+  // Always refresh checklist items from localStorage when starting a new workout
+  useEffect(() => {
+    const stored = window.localStorage.getItem('checklist-items')
+    if (stored) {
+      try {
+        setChecklistItems(JSON.parse(stored))
+      } catch {}
+    }
+  }, [phase === 'type-selection'])
 
   const handleSelectWorkoutType = (type: WorkoutType) => {
     setSelectedType(type)
@@ -94,11 +112,20 @@ export default function ActiveWorkoutScreen({ isPastWorkoutMode = false, onExitP
       ? selectedDate.toISOString() 
       : new Date().toISOString()
 
+    // For past workouts, set endTime to startTime + duration
+    let endTime: string | undefined = undefined
+    if (isPastWorkoutMode && selectedDate && pastDuration && pastDuration > 0) {
+      const start = new Date(workoutDate)
+      const end = new Date(start.getTime() + pastDuration * 60000)
+      endTime = end.toISOString()
+    }
+
     const newWorkout: Workout = {
       id: Date.now().toString(),
       type: selectedType,
       date: workoutDate,
       startTime: workoutDate,
+      endTime: endTime,
       exercises: exercisesWithNewIds,
       completed: false
     }
@@ -114,11 +141,20 @@ export default function ActiveWorkoutScreen({ isPastWorkoutMode = false, onExitP
       ? selectedDate.toISOString() 
       : new Date().toISOString()
 
+    // For past workouts, set endTime to startTime + duration
+    let endTime: string | undefined = undefined
+    if (isPastWorkoutMode && selectedDate && pastDuration && pastDuration > 0) {
+      const start = new Date(workoutDate)
+      const end = new Date(start.getTime() + pastDuration * 60000)
+      endTime = end.toISOString()
+    }
+
     const newWorkout: Workout = {
       id: Date.now().toString(),
       type: selectedType,
       date: workoutDate,
       startTime: workoutDate,
+      endTime: endTime,
       exercises: [],
       completed: false
     }
@@ -260,20 +296,31 @@ export default function ActiveWorkoutScreen({ isPastWorkoutMode = false, onExitP
               </p>
             </div>
           </div>
-          
           <Input
             type="date"
             value={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
             onChange={(e) => setSelectedDate(e.target.value ? new Date(e.target.value + 'T00:00:00') : undefined)}
             max={today.toISOString().split('T')[0]}
             min={oneYearAgo.toISOString().split('T')[0]}
-            className="h-14 text-lg"
+            className="h-14 text-lg mb-4"
           />
+          <div className="mt-4">
+            <label className="block text-base font-medium mb-1" htmlFor="duration-minutes">Duration (minutes)</label>
+            <Input
+              id="duration-minutes"
+              type="number"
+              min={1}
+              max={600}
+              value={pastDuration}
+              onChange={e => setPastDuration(Number(e.target.value))}
+              className="h-12 text-lg"
+            />
+          </div>
         </Card>
 
         <Button
           onClick={handleDateSelected}
-          disabled={!selectedDate}
+          disabled={!selectedDate || !pastDuration || pastDuration < 1}
           className="w-full h-14 text-lg font-semibold"
           size="lg"
         >

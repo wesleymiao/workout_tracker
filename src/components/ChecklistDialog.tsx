@@ -16,9 +16,9 @@ interface ChecklistDialogProps {
   onContinue: () => void
 }
 
-// Default checklist items based on workout type
-const DEFAULT_COMMON_ITEMS = ['Water bottle', 'Towel', 'Headphones']
-const SWIM_SPECIFIC_ITEMS = ['Swim bag']
+// Default checklist items based on workout type (aligned with PRD)
+const DEFAULT_COMMON_ITEMS = ['水壶', '毛巾', '耳机', '拖鞋']
+const SWIM_SPECIFIC_ITEMS = ['游泳包']
 
 export default function ChecklistDialog({
   open,

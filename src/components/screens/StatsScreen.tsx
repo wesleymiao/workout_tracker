@@ -257,14 +257,14 @@ export default function StatsScreen() {
                       {day.workouts.slice(0, 2).map((workout, idx) => (
                         <div
                           key={idx}
-                          className={`text-[7px] font-medium leading-tight text-center truncate w-full px-0.5 ${getWorkoutTypeTextColor(workout.type)}`}
+                          className={`text-[10px] font-medium leading-tight text-center truncate w-full px-0.5 ${getWorkoutTypeTextColor(workout.type)}`}
                           title={formatWorkoutLabel(workout)}
                         >
                           {formatWorkoutLabel(workout)}
                         </div>
                       ))}
                       {day.workouts.length > 2 && (
-                        <div className="text-[6px] text-muted-foreground">+{day.workouts.length - 2}</div>
+                        <div className="text-[8px] text-muted-foreground">+{day.workouts.length - 2}</div>
                       )}
                     </div>
                   )}
@@ -273,35 +273,7 @@ export default function StatsScreen() {
             })}
           </div>
 
-          <div className="mt-4 pt-4 border-t border-border">
-            <div className="text-xs text-muted-foreground mb-2">Workout Types:</div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-blue-500" />
-                <span className="text-muted-foreground">Pull</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-red-500" />
-                <span className="text-muted-foreground">Push</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-500" />
-                <span className="text-muted-foreground">Legs</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-cyan-500" />
-                <span className="text-muted-foreground">Swim</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-orange-500" />
-                <span className="text-muted-foreground">Run (Gym)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-purple-500" />
-                <span className="text-muted-foreground">Run (Outdoor)</span>
-              </div>
-            </div>
-          </div>
+
         </Card>
       </div>
 

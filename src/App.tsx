@@ -1,11 +1,10 @@
 import { useState } from 'react'
-import { House, Barbell, ChartLine } from '@phosphor-icons/react'
+import { House, Barbell } from '@phosphor-icons/react'
 import HomeScreen from './components/screens/HomeScreen'
 import ActiveWorkoutScreen from './components/screens/ActiveWorkoutScreen'
-import StatsScreen from './components/screens/StatsScreen'
 import { Toaster } from './components/ui/sonner'
 
-type Tab = 'home' | 'workout' | 'stats'
+type Tab = 'home' | 'workout'
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('home')
@@ -21,7 +20,6 @@ function App() {
       <main className="flex-1 overflow-auto pb-16">
         {activeTab === 'home' && <HomeScreen onStartWorkout={handleStartWorkout} />}
         {activeTab === 'workout' && <ActiveWorkoutScreen isPastWorkoutMode={isPastWorkoutMode} onExitPastWorkoutMode={() => setIsPastWorkoutMode(false)} />}
-        {activeTab === 'stats' && <StatsScreen />}
       </main>
 
       <nav className="fixed bottom-0 left-0 right-0 h-16 bg-card border-t border-border flex items-center justify-around px-4 safe-area-inset">
@@ -47,18 +45,6 @@ function App() {
         >
           <Barbell size={24} weight={activeTab === 'workout' ? 'fill' : 'regular'} />
           <span className="text-xs font-medium">Workout</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('stats')}
-          className={`flex flex-col items-center justify-center gap-1 px-6 py-2 rounded-lg transition-all ${
-            activeTab === 'stats'
-              ? 'text-accent'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          <ChartLine size={24} weight={activeTab === 'stats' ? 'fill' : 'regular'} />
-          <span className="text-xs font-medium">Stats</span>
         </button>
       </nav>
 

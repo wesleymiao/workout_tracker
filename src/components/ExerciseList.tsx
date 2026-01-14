@@ -429,26 +429,33 @@ function ExerciseDialog({ open, onOpenChange, exercise, exerciseType, onSave }: 
   const [targetSets, setTargetSets] = useState('')
   const [targetDistance, setTargetDistance] = useState('')
 
-  const resetForm = () => {
-    if (exercise) {
-      setType(exercise.type === 'equipment' ? 'equipment' : 'cardio')
-      setName(exercise.name)
-      if (exercise.type === 'equipment') {
-        setWeight(exercise.weight.toString())
-        setTargetReps(exercise.targetReps.toString())
-        setTargetSets(exercise.targetSets.toString())
-      } else if (exercise.type === 'cardio') {
-        setTargetDistance(exercise.targetDistance.toString())
+  // Prepopulate form when dialog opens or exercise changes
+  useEffect(() => {
+    if (open) {
+      if (exercise) {
+        setType(exercise.type === 'equipment' ? 'equipment' : 'cardio')
+        setName(exercise.name)
+        if (exercise.type === 'equipment') {
+          setWeight(exercise.weight.toString())
+          setTargetReps(exercise.targetReps.toString())
+          setTargetSets(exercise.targetSets.toString())
+          setTargetDistance('')
+        } else if (exercise.type === 'cardio') {
+          setTargetDistance(exercise.targetDistance.toString())
+          setWeight('')
+          setTargetReps('')
+          setTargetSets('')
+        }
+      } else {
+        setType(exerciseType)
+        setName('')
+        setWeight('')
+        setTargetReps('')
+        setTargetSets('')
+        setTargetDistance('')
       }
-    } else {
-      setType(exerciseType)
-      setName('')
-      setWeight('')
-      setTargetReps('')
-      setTargetSets('')
-      setTargetDistance('')
     }
-  }
+  }, [open, exercise, exerciseType])
 
   const handleSave = () => {
     if (!name.trim()) {
@@ -495,10 +502,7 @@ function ExerciseDialog({ open, onOpenChange, exercise, exerciseType, onSave }: 
   }
 
   return (
-    <Dialog open={open} onOpenChange={(open) => {
-      onOpenChange(open)
-      if (open) resetForm()
-    }}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-2xl">

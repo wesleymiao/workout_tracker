@@ -1,8 +1,7 @@
 import { Workout, isSwimWorkout, isRunWorkout } from '@/lib/types'
 import { Button } from './ui/button'
 import { Card } from './ui/card'
-import { CheckCircle, Timer, Barbell, Fire, Confetti, Trophy } from '@phosphor-icons/react'
-import { formatDuration, getTotalVolume } from '@/lib/workout-utils'
+import { CheckCircle, Fire, Confetti, Trophy } from '@phosphor-icons/react'
 import { useState, useEffect } from 'react'
 
 interface WorkoutSummaryProps {
@@ -12,9 +11,7 @@ interface WorkoutSummaryProps {
 
 export default function WorkoutSummary({ workout, onClose }: WorkoutSummaryProps) {
   const [showConfetti, setShowConfetti] = useState(true)
-  const duration = formatDuration(workout.startTime, workout.endTime)
   const completedExercises = workout.exercises.filter(e => e.completed).length
-  const totalVolume = getTotalVolume(workout)
   const allCompleted = completedExercises === workout.exercises.length && workout.exercises.length > 0
 
   useEffect(() => {
@@ -80,14 +77,6 @@ export default function WorkoutSummary({ workout, onClose }: WorkoutSummaryProps
         <div className="grid grid-cols-2 gap-4">
           <Card className="p-4">
             <div className="flex items-center gap-2 mb-2">
-              <Timer size={20} className="text-accent" />
-              <span className="text-sm text-muted-foreground">Duration</span>
-            </div>
-            <p className="text-3xl font-bold font-mono">{duration}</p>
-          </Card>
-
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-2">
               <CheckCircle size={20} className="text-accent" weight="fill" />
               <span className="text-sm text-muted-foreground">Completed</span>
             </div>
@@ -95,16 +84,6 @@ export default function WorkoutSummary({ workout, onClose }: WorkoutSummaryProps
             <p className="text-xs text-muted-foreground">of {workout.exercises.length}</p>
           </Card>
         </div>
-
-        {totalVolume > 0 && (
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Barbell size={20} className="text-accent" weight="fill" />
-              <span className="text-sm text-muted-foreground">Total Volume</span>
-            </div>
-            <p className="text-3xl font-bold font-mono">{totalVolume.toLocaleString()}kg</p>
-          </Card>
-        )}
 
         {distanceSummary && (
           <Card className="p-4">

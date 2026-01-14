@@ -1,10 +1,9 @@
 import { useLocalStorage } from '@/hooks/use-local-storage'
-import { Plus, Fire, CheckCircle, Trash, ClockCounterClockwise } from '@phosphor-icons/react'
+import { Plus, ClockCounterClockwise, Trash, CaretLeft, CaretRight } from '@phosphor-icons/react'
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Workout, WorkoutType, isSwimWorkout, isRunWorkout } from '@/lib/types'
-import { getDaysSinceLastWorkout, getWorkoutStreak } from '@/lib/workout-utils'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,25 +19,67 @@ interface HomeScreenProps {
   onStartWorkout: (isPastWorkout?: boolean) => void
 }
 
+const getWorkoutTypeTextColor = (type: WorkoutType): string => {
+  switch (type) {
+    case 'Pull':
+      return 'text-blue-400'
+    case 'Push':
+      return 'text-red-400'
+    case 'Legs':
+      return 'text-green-400'
+    case 'Swim':
+      return 'text-cyan-400'
+    case 'Run (Gym)':
+      return 'text-orange-400'
+    case 'Run (Outdoor)':
+      return 'text-purple-400'
+  }
+}
+
+const formatWorkoutLabel = (workout: Workout): string => {
+  if (workout.type === 'Swim') {
+    const swimEx = workout.exercises.find(e => e.type === 'swim')
+    if (swimEx && 'actualDistance' in swimEx && swimEx.actualDistance) {
+      return `Swim: ${swimEx.actualDistance}m`
+    }
+    if (swimEx && 'targetDistance' in swimEx) {
+      return `Swim: ${swimEx.targetDistance}m`
+    }
+    return 'Swim'
+  }
+  
+  if (workout.type === 'Run (Gym)' || workout.type === 'Run (Outdoor)') {
+    const runEx = workout.exercises.find(e => e.type === 'run')
+    if (runEx && 'actualDistance' in runEx && runEx.actualDistance) {
+      return `Run: ${runEx.actualDistance}km`
+    }
+    if (runEx && 'targetDistance' in runEx) {
+      return `Run: ${runEx.targetDistance}km`
+    }
+    return 'Run'
+  }
+  
+  return workout.type
+}
+
 export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
   const [workouts, setWorkouts] = useLocalStorage<Workout[]>('workouts', [])
   const [activeWorkout, setActiveWorkout] = useLocalStorage<Workout | null>('active-workout', null)
   const [workoutToDelete, setWorkoutToDelete] = useState<Workout | null>(null)
   const [showDeleteActiveDialog, setShowDeleteActiveDialog] = useState(false)
-
-  const daysSince = getDaysSinceLastWorkout(workouts)
-  const streak = getWorkoutStreak(workouts)
-  const reminderThreshold = 3
-  const showReminder = daysSince >= reminderThreshold
+  const [currentMonth, setCurrentMonth] = useState(() => new Date())
 
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+  const completedWorkouts = useMemo(() => {
+    return workouts.filter(w => w.completed)
+  }, [workouts])
 
   const recentWorkouts = workouts
     .filter(w => w.completed && new Date(w.date) >= thirtyDaysAgo)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
-  // Calculate days since last workout for each workout type
   const getDaysSinceLastWorkoutOfType = (workoutType: WorkoutType, currentWorkoutDate: string): number | null => {
     const currentDate = new Date(currentWorkoutDate)
     const previousWorkouts = workouts
@@ -95,29 +136,54 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
     return `${workout.exercises.length} exercises`
   }
 
+  // Calendar logic
+  const calendarDays = useMemo(() => {
+    const year = currentMonth.getFullYear()
+    const month = currentMonth.getMonth()
+
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+
+    const startPadding = firstDay.getDay()
+    const daysInMonth = lastDay.getDate()
+
+    const days: Array<{ date: Date | null; workouts: Workout[] }> = []
+
+    for (let i = 0; i < startPadding; i++) {
+      days.push({ date: null, workouts: [] })
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day)
+      const dayWorkouts = completedWorkouts.filter(w => {
+        const workoutDate = new Date(w.date)
+        return workoutDate.getFullYear() === year &&
+               workoutDate.getMonth() === month &&
+               workoutDate.getDate() === day
+      })
+
+      days.push({
+        date,
+        workouts: dayWorkouts
+      })
+    }
+
+    return days
+  }, [currentMonth, completedWorkouts])
+
+  const monthLabel = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+
+  const goToPreviousMonth = () => {
+    setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1))
+  }
+
+  const goToNextMonth = () => {
+    setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1))
+  }
+
   return (
-    <div className="p-4 space-y-6">
-      <header className="space-y-2">
-        <h1 className="text-[32px] font-bold tracking-tight leading-[1.1]">
-          Workout Tracker
-        </h1>
-        <p className="text-muted-foreground">Track your progress, achieve your goals</p>
-      </header>
-
-      {showReminder && (
-        <Card className="p-4 bg-destructive/10 border-destructive/20">
-          <div className="flex items-start gap-3">
-            <Fire size={24} className="text-destructive flex-shrink-0 mt-0.5" weight="fill" />
-            <div>
-              <h3 className="font-semibold text-foreground">Keep your streak alive!</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                It's been {daysSince} days since your last workout. Time to get back at it!
-              </p>
-            </div>
-          </div>
-        </Card>
-      )}
-
+    <div className="p-4 pt-12 space-y-6 pb-24">
+      {/* Resume Workout Card (if in-progress) */}
       {activeWorkout && !activeWorkout.completed && (
         <Card className="p-4 bg-accent/10 border-accent/30">
           <div className="flex items-center justify-between">
@@ -144,30 +210,7 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
         </Card>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
-        <Card className="p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Fire size={20} className="text-accent" weight="fill" />
-            <span className="text-sm text-muted-foreground">Streak</span>
-          </div>
-          <p className="text-3xl font-bold font-mono">{streak}</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {streak === 1 ? 'day' : 'days'}
-          </p>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <CheckCircle size={20} className="text-accent" weight="fill" />
-            <span className="text-sm text-muted-foreground">Total</span>
-          </div>
-          <p className="text-3xl font-bold font-mono">
-            {workouts.filter(w => w.completed).length}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">workouts</p>
-        </Card>
-      </div>
-
+      {/* Start Workout / Log Past Workout Buttons */}
       <div className="space-y-3">
         <Button
           onClick={handleStartWorkout}
@@ -189,6 +232,85 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
         </Button>
       </div>
 
+      {/* Workout Activity Calendar */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Activity Calendar</h2>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={goToPreviousMonth}
+            >
+              <CaretLeft size={20} />
+            </Button>
+            <span className="text-sm font-medium min-w-[140px] text-center">
+              {monthLabel}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={goToNextMonth}
+            >
+              <CaretRight size={20} />
+            </Button>
+          </div>
+        </div>
+
+        <Card className="p-4">
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
+              <div key={i} className="text-center text-xs text-muted-foreground font-medium">
+                {day}
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-1">
+            {calendarDays.map((day, i) => {
+              if (!day.date) {
+                return <div key={i} className="min-h-[60px]" />
+              }
+
+              const isToday = day.date.toDateString() === new Date().toDateString()
+              const hasWorkouts = day.workouts.length > 0
+
+              return (
+                <div
+                  key={i}
+                  className={`min-h-[60px] rounded-md flex flex-col items-center p-1 transition-all ${
+                    !hasWorkouts
+                      ? 'bg-secondary/30 text-muted-foreground'
+                      : 'bg-accent/10 text-accent-foreground border border-accent/30'
+                  } ${
+                    isToday ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : ''
+                  }`}
+                >
+                  <div className="text-[10px] font-medium mb-0.5">{day.date.getDate()}</div>
+                  {hasWorkouts && (
+                    <div className="flex flex-col items-center gap-0.5 w-full overflow-hidden">
+                      {day.workouts.slice(0, 2).map((workout, idx) => (
+                        <div
+                          key={idx}
+                          className={`text-[10px] font-medium leading-tight text-center truncate w-full px-0.5 ${getWorkoutTypeTextColor(workout.type)}`}
+                          title={formatWorkoutLabel(workout)}
+                        >
+                          {formatWorkoutLabel(workout)}
+                        </div>
+                      ))}
+                      {day.workouts.length > 2 && (
+                        <div className="text-[8px] text-muted-foreground">+{day.workouts.length - 2}</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </Card>
+      </div>
+
+      {/* Recent Workouts */}
       <div>
         <h2 className="text-2xl font-semibold mb-4">Recent Workouts</h2>
         <div className="space-y-3">

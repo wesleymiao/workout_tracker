@@ -14,8 +14,8 @@ This app manages workout sessions, exercise tracking, and historical data with s
 
 ### Pre-Workout Checklist
 - **Functionality**: Displays dynamic checklist of items based on workout type selected
-  - **Common items** (all workout types): Water bottle, Towel, Headphones
-  - **Swim-specific items**: Swim bag
+  - **Common items** (all workout types): 水壶, 毛巾, 耳机, 拖鞋
+  - **Swim-specific items**: 游泳包
 - **Purpose**: Ensures user doesn't forget essentials before leaving for gym
 - **Trigger**: After user selects workout type
 - **Progression**: Home → Select workout type → Checklist Modal → Check items → Exercise planning
@@ -41,10 +41,11 @@ This app manages workout sessions, exercise tracking, and historical data with s
 
 ### Real-time Exercise Logging
 - **Functionality**: Mark exercises complete; adjust actual values during workout (reps/sets/weight/distance)
+  - When editing an exercise, its existing data is prepopulated in the edit form
+  - When adding exercises to the workout, the order of addition is preserved and displayed exactly as added
 - **Visual Encouragement**: Celebratory animations when completing pre-set targets
   - Progress ring fills as sets/exercises are completed
   - Confetti burst animation when all targets for an exercise are met
-  - Streak counter with fire icon pulses when hitting consecutive targets
   - "Target achieved!" toast notification with checkmark animation
   - Overall workout progress bar glows when approaching 100% completion
 - **Uncompleted Item Reminders**: Visual cues for incomplete exercises
@@ -58,11 +59,11 @@ This app manages workout sessions, exercise tracking, and historical data with s
 - **Success criteria**: Changes save immediately; visual feedback on completion; animations feel rewarding without being intrusive; reminders encourage completion without being annoying; easy to undo mistakes
 
 ### Workout Summary & Completion
-- **Functionality**: "Finish Workout" button; displays duration, exercises completed, and notable achievements
+- **Functionality**: "Finish Workout" button; displays exercises completed and notable achievements
 - **Purpose**: Provides closure and immediate feedback on session
 - **Trigger**: User taps finish button
 - **Progression**: Active workout → Finish button → Summary modal → Return to home
-- **Success criteria**: Summary shows key metrics; data saved to history; workout clears from active state
+- **Success criteria**: Summary shows key metrics (e.g., completed exercises, achievements); data saved to history; workout clears from active state
 
 ### Log Past Workout
 - **Functionality**: Allows users to add a workout that occurred on a previous date
@@ -76,42 +77,30 @@ This app manages workout sessions, exercise tracking, and historical data with s
 - **Progression**: Home → "Log Past Workout" button → Type selection → Date picker → Past workout selection → Exercise planning → Workout summary (no active timer)
 - **Success criteria**: Past workout saves with correct historical date; all exercises saved as completed; appears in history and statistics correctly; no timer displayed during logging since workout already occurred
 
-### Analytics Dashboard
-- **Functionality**: Charts showing workout frequency, volume progression, personal records
-- **Calendar View**: Activity calendar displays actual workout details in each cell instead of colored dots
+### Home Screen Layout
+- **Mobile-First Spacing**: Extra top padding (safe area) for comfortable mobile viewing, accounting for device status bars and notches
+- **Layout Order** (top to bottom):
+  1. Resume workout card (if in-progress workout exists)
+  2. **Start Workout** and **Log Past Workout** buttons
+  3. Activity Calendar with month navigation and workout details in each cell
+  4. Recent Workouts section
+- **Activity Calendar**:
+  - Displays calendar grid with workout details in each day cell
   - **Swim workouts**: Shows "Swim: 800m" with actual/target distance in meters
-  - **Run workouts**: Shows "Run: 5km" with actual/target distance in kilometers  
+  - **Run workouts**: Shows "Run: 5km" with actual/target distance in kilometers
   - **Strength workouts**: Shows "Pull", "Push", or "Legs" as simple labels
   - Multiple workouts per day stack vertically (max 2 shown, with "+N" indicator for more)
   - Color-coded text matches workout type colors for quick visual identification
-- **Purpose**: Visualizes progress to maintain motivation; at-a-glance view of workout history with meaningful details
-- **Trigger**: User taps "Statistics" tab
-- **Progression**: Tab navigation → Dashboard with calendar and charts → Drill down into specific exercises
-- **Success criteria**: Calendar shows workout details instantly; charts render historical data; updates after each workout; highlights trends
-
-### Smart Reminders
-- **Functionality**: Detects declining workout frequency; displays motivational prompt on home screen
-- **Purpose**: Re-engages users trending toward inactivity
-- **Trigger**: User hasn't worked out in X days (configurable)
-- **Progression**: Automatic detection → Banner appears on home → User dismisses or starts workout
-- **Success criteria**: Reminder threshold configurable; message non-intrusive; disappears after workout
-
-### Home Screen Layout
-- **Layout Order** (top to bottom):
-  1. Header with app title and tagline
-  2. Smart reminder banner (if applicable)
-  3. Resume workout card (if in-progress workout exists)
-  4. Stats cards (Streak & Total workouts)
-  5. **Start Workout** and **Log Past Workout** buttons
-  6. Recent Workouts section
+  - Month navigation arrows to browse past/future months
+  - Today's date highlighted with ring indicator
 - **Recent Workouts**:
   - Displays all completed workouts from the past 30 days
   - Each workout card shows workout type with a "(+XX days)" indicator showing how many days elapsed since the previous workout of the same type
   - Indicator helps users track workout frequency per type at a glance
   - If no previous workout of the same type exists, no indicator is shown
   - Workouts sorted by date (most recent first)
-- **Purpose**: Provides quick access to start/log workouts and see recent activity with workout frequency insights
-- **Success criteria**: Action buttons prominently placed; recent workouts show meaningful time gap indicators; users can quickly assess workout patterns per type
+- **Purpose**: Provides quick access to start/log workouts, view activity calendar, and see recent workouts
+- **Success criteria**: Action buttons prominently placed; calendar shows workout details with readable font; recent workouts show meaningful time gap indicators; no separate Stats tab (consolidated into Home)
 
 ## Edge Case Handling
 

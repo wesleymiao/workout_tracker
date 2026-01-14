@@ -23,10 +23,17 @@ export function formatDuration(startTime: string, endTime?: string): string {
   const start = new Date(startTime)
   const end = new Date(endTime)
   const diffMs = end.getTime() - start.getTime()
+  if (diffMs <= 0) return '0m'
+
+  // Show seconds for very short workouts and avoid always displaying 0m
+  if (diffMs < 60000) {
+    const secs = Math.max(1, Math.round(diffMs / 1000))
+    return `${secs}s`
+  }
+
   const diffMins = Math.floor(diffMs / 60000)
-  
-  if (diffMins < 60) return `${diffMins}m`
-  
+  if (diffMins < 60) return `${Math.max(1, diffMins)}m`
+
   const hours = Math.floor(diffMins / 60)
   const mins = diffMins % 60
   return `${hours}h ${mins}m`
