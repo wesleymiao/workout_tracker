@@ -69,10 +69,12 @@ This app manages workout sessions, exercise tracking, and historical data with s
   - Displays a native system date picker after workout type selection
   - Date picker defaults to yesterday, allows selection of any past date
   - Cannot select future dates or dates more than 1 year ago
+  - **All exercises are automatically marked as completed** when saving a past workout (since the workout already occurred)
+  - Actual values default to target values if not modified
 - **Purpose**: Enables users to catch up on workouts they forgot to log or import historical data
 - **Trigger**: User taps "Log Past Workout" from home screen
 - **Progression**: Home → "Log Past Workout" button → Type selection → Date picker → Past workout selection → Exercise planning → Workout summary (no active timer)
-- **Success criteria**: Past workout saves with correct historical date; appears in history and statistics correctly; no timer displayed during logging since workout already occurred
+- **Success criteria**: Past workout saves with correct historical date; all exercises saved as completed; appears in history and statistics correctly; no timer displayed during logging since workout already occurred
 
 ### Analytics Dashboard
 - **Functionality**: Charts showing workout frequency, volume progression, personal records

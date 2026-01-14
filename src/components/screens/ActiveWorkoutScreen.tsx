@@ -138,8 +138,43 @@ export default function ActiveWorkoutScreen({ isPastWorkoutMode = false, onExitP
   const handleFinishWorkout = () => {
     if (!activeWorkout) return
 
+    // For past workouts, mark all exercises as completed
+    const exercises = isPastWorkoutMode 
+      ? activeWorkout.exercises.map((exercise): Exercise => {
+          if (exercise.type === 'equipment') {
+            return {
+              ...exercise,
+              completed: true,
+              completedSets: exercise.targetSets,
+              actualWeight: exercise.actualWeight ?? exercise.weight,
+              actualReps: exercise.actualReps ?? Array(exercise.targetSets).fill(exercise.targetReps)
+            }
+          } else if (exercise.type === 'swim') {
+            return {
+              ...exercise,
+              completed: true,
+              actualDistance: exercise.actualDistance ?? exercise.targetDistance
+            }
+          } else if (exercise.type === 'run') {
+            return {
+              ...exercise,
+              completed: true,
+              actualDistance: exercise.actualDistance ?? exercise.targetDistance
+            }
+          } else {
+            // cardio
+            return {
+              ...exercise,
+              completed: true,
+              actualDistance: exercise.actualDistance ?? exercise.targetDistance
+            }
+          }
+        })
+      : activeWorkout.exercises
+
     const completedWorkout: Workout = {
       ...activeWorkout,
+      exercises,
       endTime: new Date().toISOString(),
       completed: true
     }
