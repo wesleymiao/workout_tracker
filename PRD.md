@@ -94,6 +94,23 @@ This app manages workout sessions, exercise tracking, and historical data with s
 - **Progression**: Automatic detection → Banner appears on home → User dismisses or starts workout
 - **Success criteria**: Reminder threshold configurable; message non-intrusive; disappears after workout
 
+### Home Screen Layout
+- **Layout Order** (top to bottom):
+  1. Header with app title and tagline
+  2. Smart reminder banner (if applicable)
+  3. Resume workout card (if in-progress workout exists)
+  4. Stats cards (Streak & Total workouts)
+  5. **Start Workout** and **Log Past Workout** buttons
+  6. Recent Workouts section
+- **Recent Workouts**:
+  - Displays all completed workouts from the past 30 days
+  - Each workout card shows workout type with a "(+XX days)" indicator showing how many days elapsed since the previous workout of the same type
+  - Indicator helps users track workout frequency per type at a glance
+  - If no previous workout of the same type exists, no indicator is shown
+  - Workouts sorted by date (most recent first)
+- **Purpose**: Provides quick access to start/log workouts and see recent activity with workout frequency insights
+- **Success criteria**: Action buttons prominently placed; recent workouts show meaningful time gap indicators; users can quickly assess workout patterns per type
+
 ## Edge Case Handling
 
 - **Empty History**: First-time users see empty exercise list with "Add Exercise" prompt

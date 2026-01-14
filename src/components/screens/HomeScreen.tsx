@@ -31,10 +31,26 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
   const reminderThreshold = 3
   const showReminder = daysSince >= reminderThreshold
 
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
   const recentWorkouts = workouts
-    .filter(w => w.completed)
+    .filter(w => w.completed && new Date(w.date) >= thirtyDaysAgo)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 3)
+
+  // Calculate days since last workout for each workout type
+  const getDaysSinceLastWorkoutOfType = (workoutType: WorkoutType, currentWorkoutDate: string): number | null => {
+    const currentDate = new Date(currentWorkoutDate)
+    const previousWorkouts = workouts
+      .filter(w => w.completed && w.type === workoutType && new Date(w.date) < currentDate)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    
+    if (previousWorkouts.length === 0) return null
+    
+    const lastWorkoutDate = new Date(previousWorkouts[0].date)
+    const diffTime = currentDate.getTime() - lastWorkoutDate.getTime()
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24))
+  }
 
   const handleStartWorkout = () => {
     onStartWorkout(false)
@@ -152,55 +168,6 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
         </Card>
       </div>
 
-      <div>
-        <h2 className="text-2xl font-semibold mb-4">Recent Workouts</h2>
-        <div className="space-y-3">
-          {recentWorkouts.length === 0 ? (
-            <Card className="p-6 text-center">
-              <p className="text-muted-foreground">No workouts yet</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Start your first workout to see it here
-              </p>
-            </Card>
-          ) : (
-            recentWorkouts.map(workout => (
-              <Card key={workout.id} className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold">{workout.type}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(workout.date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
-                      })}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <p className="text-sm font-medium">
-                        {getExerciseInfo(workout)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {workout.exercises.filter(e => e.completed).length} completed
-                      </p>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDeleteWorkout(workout)}
-                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash size={18} />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))
-          )}
-        </div>
-      </div>
-
       <div className="space-y-3">
         <Button
           onClick={handleStartWorkout}
@@ -220,6 +187,63 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
           <ClockCounterClockwise size={20} weight="bold" />
           Log Past Workout
         </Button>
+      </div>
+
+      <div>
+        <h2 className="text-2xl font-semibold mb-4">Recent Workouts</h2>
+        <div className="space-y-3">
+          {recentWorkouts.length === 0 ? (
+            <Card className="p-6 text-center">
+              <p className="text-muted-foreground">No workouts yet</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Start your first workout to see it here
+              </p>
+            </Card>
+          ) : (
+            recentWorkouts.map(workout => {
+              const daysSinceType = getDaysSinceLastWorkoutOfType(workout.type, workout.date)
+              return (
+                <Card key={workout.id} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold">{workout.type}</h3>
+                        {daysSinceType !== null && (
+                          <span className="text-xs text-muted-foreground">(+{daysSinceType} days)</span>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(workout.date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <p className="text-sm font-medium">
+                          {getExerciseInfo(workout)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {workout.exercises.filter(e => e.completed).length} completed
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteWorkout(workout)}
+                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash size={18} />
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              )
+            })
+          )}
+        </div>
       </div>
 
       {/* Delete Completed Workout Confirmation */}
