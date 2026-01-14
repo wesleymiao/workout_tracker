@@ -9,12 +9,18 @@ type Tab = 'home' | 'workout' | 'stats'
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('home')
+  const [isPastWorkoutMode, setIsPastWorkoutMode] = useState(false)
+
+  const handleStartWorkout = (isPastWorkout: boolean = false) => {
+    setIsPastWorkoutMode(isPastWorkout)
+    setActiveTab('workout')
+  }
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground">
       <main className="flex-1 overflow-auto pb-16">
-        {activeTab === 'home' && <HomeScreen onStartWorkout={() => setActiveTab('workout')} />}
-        {activeTab === 'workout' && <ActiveWorkoutScreen />}
+        {activeTab === 'home' && <HomeScreen onStartWorkout={handleStartWorkout} />}
+        {activeTab === 'workout' && <ActiveWorkoutScreen isPastWorkoutMode={isPastWorkoutMode} onExitPastWorkoutMode={() => setIsPastWorkoutMode(false)} />}
         {activeTab === 'stats' && <StatsScreen />}
       </main>
 

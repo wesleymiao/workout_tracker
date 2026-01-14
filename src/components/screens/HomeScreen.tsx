@@ -1,5 +1,5 @@
 import { useLocalStorage } from '@/hooks/use-local-storage'
-import { Plus, Fire, CheckCircle, Trash } from '@phosphor-icons/react'
+import { Plus, Fire, CheckCircle, Trash, ClockCounterClockwise } from '@phosphor-icons/react'
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
 import { useState } from 'react'
@@ -17,7 +17,7 @@ import {
 } from '../ui/alert-dialog'
 
 interface HomeScreenProps {
-  onStartWorkout: () => void
+  onStartWorkout: (isPastWorkout?: boolean) => void
 }
 
 export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
@@ -37,7 +37,11 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
     .slice(0, 3)
 
   const handleStartWorkout = () => {
-    onStartWorkout()
+    onStartWorkout(false)
+  }
+
+  const handleLogPastWorkout = () => {
+    onStartWorkout(true)
   }
 
   const handleDeleteWorkout = (workout: Workout) => {
@@ -197,14 +201,26 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
         </div>
       </div>
 
-      <Button
-        onClick={handleStartWorkout}
-        className="w-full h-14 text-lg font-semibold"
-        size="lg"
-      >
-        <Plus size={24} weight="bold" />
-        Start Workout
-      </Button>
+      <div className="space-y-3">
+        <Button
+          onClick={handleStartWorkout}
+          className="w-full h-14 text-lg font-semibold"
+          size="lg"
+        >
+          <Plus size={24} weight="bold" />
+          Start Workout
+        </Button>
+
+        <Button
+          onClick={handleLogPastWorkout}
+          variant="outline"
+          className="w-full h-12"
+          size="lg"
+        >
+          <ClockCounterClockwise size={20} weight="bold" />
+          Log Past Workout
+        </Button>
+      </div>
 
       {/* Delete Completed Workout Confirmation */}
       <AlertDialog open={!!workoutToDelete} onOpenChange={(open) => !open && setWorkoutToDelete(null)}>

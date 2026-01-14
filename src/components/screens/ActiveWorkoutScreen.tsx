@@ -9,18 +9,25 @@ import WorkoutSummary from '../WorkoutSummary'
 import ChecklistDialog from '../ChecklistDialog'
 import PastWorkoutSelector from '../PastWorkoutSelector'
 import ExercisePlanner from '../ExercisePlanner'
-import { CheckCircle, Timer, Fire, Confetti } from '@phosphor-icons/react'
+import { Calendar } from '../ui/calendar'
+import { CheckCircle, Timer, Fire, Confetti, CalendarBlank } from '@phosphor-icons/react'
 import { formatDuration, getLast5WorkoutsOfType, generateId } from '@/lib/workout-utils'
 import { Progress } from '../ui/progress'
 
-type WorkoutPhase = 'type-selection' | 'checklist' | 'past-workout-selection' | 'planning' | 'active'
+type WorkoutPhase = 'type-selection' | 'date-selection' | 'checklist' | 'past-workout-selection' | 'planning' | 'active'
 
-export default function ActiveWorkoutScreen() {
+interface ActiveWorkoutScreenProps {
+  isPastWorkoutMode?: boolean
+  onExitPastWorkoutMode?: () => void
+}
+
+export default function ActiveWorkoutScreen({ isPastWorkoutMode = false, onExitPastWorkoutMode }: ActiveWorkoutScreenProps) {
   const [activeWorkout, setActiveWorkout] = useLocalStorage<Workout | null>('active-workout', null)
   const [workouts, setWorkouts] = useLocalStorage<Workout[]>('workouts', [])
   const [checklistItems] = useLocalStorage<string[]>('checklist-items', ['Water bottle', 'Towel', 'Headphones'])
   const [showSummary, setShowSummary] = useState(false)
   const [selectedType, setSelectedType] = useState<WorkoutType | null>(null)
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
   const [phase, setPhase] = useState<WorkoutPhase>(() => {
     // Determine initial phase based on stored active workout
     // This runs only once on mount
@@ -40,13 +47,28 @@ export default function ActiveWorkoutScreen() {
 
   const handleSelectWorkoutType = (type: WorkoutType) => {
     setSelectedType(type)
-    // Show checklist if there are items
-    if (checklistItems.length > 0) {
+    
+    // If past workout mode, go to date selection first
+    if (isPastWorkoutMode) {
+      // Default to yesterday
+      const yesterday = new Date()
+      yesterday.setDate(yesterday.getDate() - 1)
+      setSelectedDate(yesterday)
+      setPhase('date-selection')
+    } else if (checklistItems.length > 0) {
+      // Show checklist if there are items
       setPhase('checklist')
     } else {
       // Skip to past workout selection
       setPhase('past-workout-selection')
     }
+  }
+
+  const handleDateSelected = () => {
+    if (!selectedDate) return
+    
+    // Skip checklist for past workouts (already done) and go to past workout selection
+    setPhase('past-workout-selection')
   }
 
   const handleChecklistContinue = () => {
@@ -67,11 +89,16 @@ export default function ActiveWorkoutScreen() {
       actualDistance: undefined
     })) as Exercise[]
 
+    // Use selected date for past workouts, otherwise use current date
+    const workoutDate = isPastWorkoutMode && selectedDate 
+      ? selectedDate.toISOString() 
+      : new Date().toISOString()
+
     const newWorkout: Workout = {
       id: Date.now().toString(),
       type: selectedType,
-      date: new Date().toISOString(),
-      startTime: new Date().toISOString(),
+      date: workoutDate,
+      startTime: workoutDate,
       exercises: exercisesWithNewIds,
       completed: false
     }
@@ -82,11 +109,16 @@ export default function ActiveWorkoutScreen() {
   const handleSkipPastWorkout = () => {
     if (!selectedType) return
 
+    // Use selected date for past workouts, otherwise use current date
+    const workoutDate = isPastWorkoutMode && selectedDate 
+      ? selectedDate.toISOString() 
+      : new Date().toISOString()
+
     const newWorkout: Workout = {
       id: Date.now().toString(),
       type: selectedType,
-      date: new Date().toISOString(),
-      startTime: new Date().toISOString(),
+      date: workoutDate,
+      startTime: workoutDate,
       exercises: [],
       completed: false
     }
@@ -95,7 +127,12 @@ export default function ActiveWorkoutScreen() {
   }
 
   const handleStartWorkout = () => {
-    setPhase('active')
+    // For past workouts, skip active phase and go directly to finish
+    if (isPastWorkoutMode) {
+      handleFinishWorkout()
+    } else {
+      setPhase('active')
+    }
   }
 
   const handleFinishWorkout = () => {
@@ -115,13 +152,17 @@ export default function ActiveWorkoutScreen() {
     setShowSummary(false)
     setActiveWorkout(null)
     setSelectedType(null)
+    setSelectedDate(undefined)
     setPhase('type-selection')
+    onExitPastWorkoutMode?.()
   }
 
   const handleCancelWorkout = () => {
     setActiveWorkout(null)
     setSelectedType(null)
+    setSelectedDate(undefined)
     setPhase('type-selection')
+    onExitPastWorkoutMode?.()
   }
 
   if (showSummary && activeWorkout) {
@@ -139,12 +180,71 @@ export default function ActiveWorkoutScreen() {
       <div className="p-4">
         <header className="mb-6">
           <h1 className="text-[32px] font-bold tracking-tight leading-[1.1]">
-            Start Workout
+            {isPastWorkoutMode ? 'Log Past Workout' : 'Start Workout'}
           </h1>
           <p className="text-muted-foreground mt-2">Select your workout type</p>
         </header>
 
         <WorkoutTypeSelector onSelect={handleSelectWorkoutType} />
+      </div>
+    )
+  }
+
+  // Phase: Date Selection (for past workouts only)
+  if (phase === 'date-selection' && selectedType && isPastWorkoutMode) {
+    const today = new Date()
+    const oneYearAgo = new Date()
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
+    
+    return (
+      <div className="p-4">
+        <header className="mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">{selectedType}</h1>
+              <p className="text-muted-foreground mt-1">When did you do this workout?</p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={handleCancelWorkout}>
+              Cancel
+            </Button>
+          </div>
+        </header>
+
+        <Card className="p-4 mb-6">
+          <div className="flex items-center gap-3 mb-4">
+            <CalendarBlank size={24} className="text-accent" />
+            <div>
+              <p className="font-semibold">Select Workout Date</p>
+              <p className="text-sm text-muted-foreground">
+                {selectedDate ? selectedDate.toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric'
+                }) : 'No date selected'}
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex justify-center">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              disabled={(date) => date > today || date < oneYearAgo}
+              className="rounded-md border"
+            />
+          </div>
+        </Card>
+
+        <Button
+          onClick={handleDateSelected}
+          disabled={!selectedDate}
+          className="w-full h-14 text-lg font-semibold"
+          size="lg"
+        >
+          Continue
+        </Button>
       </div>
     )
   }
@@ -203,7 +303,11 @@ export default function ActiveWorkoutScreen() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold">{activeWorkout.type}</h1>
-              <p className="text-muted-foreground mt-1">Plan your exercises</p>
+              <p className="text-muted-foreground mt-1">
+                {isPastWorkoutMode 
+                  ? `Log exercises for ${new Date(activeWorkout.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` 
+                  : 'Plan your exercises'}
+              </p>
             </div>
             <Button variant="ghost" size="sm" onClick={handleCancelWorkout}>
               Cancel
@@ -215,6 +319,7 @@ export default function ActiveWorkoutScreen() {
           workout={activeWorkout}
           onUpdateWorkout={setActiveWorkout}
           onStartWorkout={handleStartWorkout}
+          isPastWorkoutMode={isPastWorkoutMode}
         />
       </div>
     )

@@ -14,6 +14,7 @@ interface ExercisePlannerProps {
   workout: Workout
   onUpdateWorkout: (workout: Workout) => void
   onStartWorkout: () => void
+  isPastWorkoutMode?: boolean
 }
 
 // Helper to get initial swim distance
@@ -34,7 +35,7 @@ function getInitialRunDistance(workout: Workout): string {
   return ''
 }
 
-export default function ExercisePlanner({ workout, onUpdateWorkout, onStartWorkout }: ExercisePlannerProps) {
+export default function ExercisePlanner({ workout, onUpdateWorkout, onStartWorkout, isPastWorkoutMode = false }: ExercisePlannerProps) {
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null)
 
@@ -186,7 +187,7 @@ export default function ExercisePlanner({ workout, onUpdateWorkout, onStartWorko
           className="w-full h-14 text-lg font-semibold"
           size="lg"
         >
-          Start Workout
+          {isPastWorkoutMode ? 'Save Workout' : 'Start Workout'}
         </Button>
       </div>
     )
@@ -248,7 +249,7 @@ export default function ExercisePlanner({ workout, onUpdateWorkout, onStartWorko
           className="w-full h-14 text-lg font-semibold"
           size="lg"
         >
-          Start Workout
+          {isPastWorkoutMode ? 'Save Workout' : 'Start Workout'}
         </Button>
       </div>
     )
@@ -345,7 +346,7 @@ export default function ExercisePlanner({ workout, onUpdateWorkout, onStartWorko
         className="w-full h-14 text-lg font-semibold"
         size="lg"
       >
-        Start Workout
+        {isPastWorkoutMode ? 'Save Workout' : 'Start Workout'}
       </Button>
 
       <StrengthExerciseDialog
