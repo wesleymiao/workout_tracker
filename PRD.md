@@ -66,7 +66,7 @@ This app manages workout sessions, exercise tracking, and historical data with s
 
 ### Log Past Workout
 - **Functionality**: Allows users to add a workout that occurred on a previous date
-  - Displays a date picker after workout type selection
+  - Displays a native system date picker after workout type selection
   - Date picker defaults to yesterday, allows selection of any past date
   - Cannot select future dates or dates more than 1 year ago
 - **Purpose**: Enables users to catch up on workouts they forgot to log or import historical data

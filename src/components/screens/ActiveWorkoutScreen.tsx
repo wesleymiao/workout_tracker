@@ -9,7 +9,7 @@ import WorkoutSummary from '../WorkoutSummary'
 import ChecklistDialog from '../ChecklistDialog'
 import PastWorkoutSelector from '../PastWorkoutSelector'
 import ExercisePlanner from '../ExercisePlanner'
-import { Calendar } from '../ui/calendar'
+import { Input } from '../ui/input'
 import { CheckCircle, Timer, Fire, Confetti, CalendarBlank } from '@phosphor-icons/react'
 import { formatDuration, getLast5WorkoutsOfType, generateId } from '@/lib/workout-utils'
 import { Progress } from '../ui/progress'
@@ -226,15 +226,14 @@ export default function ActiveWorkoutScreen({ isPastWorkoutMode = false, onExitP
             </div>
           </div>
           
-          <div className="flex justify-center">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              disabled={(date) => date > today || date < oneYearAgo}
-              className="rounded-md border"
-            />
-          </div>
+          <Input
+            type="date"
+            value={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
+            onChange={(e) => setSelectedDate(e.target.value ? new Date(e.target.value + 'T00:00:00') : undefined)}
+            max={today.toISOString().split('T')[0]}
+            min={oneYearAgo.toISOString().split('T')[0]}
+            className="h-14 text-lg"
+          />
         </Card>
 
         <Button
