@@ -81,29 +81,36 @@ export default function ChecklistDialog({
           <DialogTitle className="text-2xl">Pre-Workout Checklist</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-3 py-4">
+        <div className="space-y-2 py-4">
           {displayItems.map((item) => (
-            <div key={item} className="flex items-center gap-3 group">
+            <div 
+              key={item} 
+              className="flex items-center gap-4 group p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 active:bg-secondary/70 transition-colors touch-manipulation"
+              onClick={() => handleToggle(item)}
+            >
               <Checkbox
                 id={item}
                 checked={checkedItems.has(item)}
                 onCheckedChange={() => handleToggle(item)}
-                className="data-[state=checked]:bg-accent data-[state=checked]:border-accent"
+                className="h-7 w-7 rounded-md data-[state=checked]:bg-accent data-[state=checked]:border-accent [&>span>svg]:h-5 [&>span>svg]:w-5"
               />
               <label
                 htmlFor={item}
-                className="flex-1 text-base cursor-pointer select-none"
+                className="flex-1 text-lg font-medium cursor-pointer select-none"
               >
                 {item}
               </label>
               {!SWIM_SPECIFIC_ITEMS.includes(item) && (
                 <Button
                   variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemoveItem(item)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleRemoveItem(item)
+                  }}
+                  className="h-10 w-10 opacity-60 hover:opacity-100 transition-opacity"
                 >
-                  <Trash size={18} />
+                  <Trash size={22} />
                 </Button>
               )}
             </div>
@@ -126,16 +133,17 @@ export default function ChecklistDialog({
                 handleAddItem()
               }
             }}
+            className="h-12 text-base"
           />
-          <Button onClick={handleAddItem} size="icon">
-            <Plus size={20} weight="bold" />
+          <Button onClick={handleAddItem} size="icon" className="h-12 w-12">
+            <Plus size={24} weight="bold" />
           </Button>
         </div>
 
         <DialogFooter>
           <Button
             onClick={handleContinue}
-            className="w-full h-12"
+            className="w-full h-14 text-lg font-semibold"
             size="lg"
           >
             Continue to Workout

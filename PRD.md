@@ -19,7 +19,13 @@ This app manages workout sessions, exercise tracking, and historical data with s
 - **Purpose**: Ensures user doesn't forget essentials before leaving for gym
 - **Trigger**: After user selects workout type
 - **Progression**: Home → Select workout type → Checklist Modal → Check items → Exercise planning
-- **Success criteria**: User can add/remove/check items; checklist adapts to workout type; checklist state persists between sessions
+- **Mobile-Optimized UI**:
+  - Large touch-friendly checkboxes (28x28px minimum) for easy tapping with sweaty hands
+  - Full-width tappable rows with generous padding for each checklist item
+  - Visible delete buttons (no hover-only state) for mobile accessibility
+  - Large input field and add button for adding new items
+  - Prominent "Continue to Workout" button with 56px height
+- **Success criteria**: User can add/remove/check items; checklist adapts to workout type; checklist state persists between sessions; all touch targets meet 44px minimum
 
 ### Workout Type Selection
 - **Functionality**: Choose from 6 workout types: Pull, Push, Legs, Swim, Run (Gym), Run (Outdoor)
@@ -80,10 +86,20 @@ This app manages workout sessions, exercise tracking, and historical data with s
 ### Home Screen Layout
 - **Mobile-First Spacing**: Extra top padding (safe area) for comfortable mobile viewing, accounting for device status bars and notches
 - **Layout Order** (top to bottom):
-  1. Resume workout card (if in-progress workout exists)
-  2. **Start Workout** and **Log Past Workout** buttons
-  3. Activity Calendar with month navigation and workout details in each cell
-  4. Recent Workouts section
+  1. **Workout Reminder Banner** (motivational message based on workout frequency)
+  2. Resume workout card (if in-progress workout exists)
+  3. **Start Workout** and **Log Past Workout** buttons
+  4. Activity Calendar with month navigation and workout details in each cell
+  5. Recent Workouts section
+- **Workout Reminder Banner**:
+  - Displays contextual motivational messages based on days since last workout
+  - **Welcome message**: Shows for first-time users encouraging them to start
+  - **Great job message** (green): Displayed when user worked out today
+  - **Gentle reminder** (yellow): 2-3 days since last workout - "Ready to get back on track?"
+  - **Warning reminder** (orange): 4-7 days since last workout - "Don't break your momentum!"
+  - **Urgent reminder** (red): 7+ days since last workout - Encouraging message to restart
+  - Hidden when only 1 day has passed (user is likely resting)
+  - Color-coded left border and icon for quick visual identification
 - **Activity Calendar**:
   - Displays calendar grid with workout details in each day cell
   - **Swim workouts**: Shows "Swim: 800m" with actual/target distance in meters
@@ -99,8 +115,8 @@ This app manages workout sessions, exercise tracking, and historical data with s
   - Indicator helps users track workout frequency per type at a glance
   - If no previous workout of the same type exists, no indicator is shown
   - Workouts sorted by date (most recent first)
-- **Purpose**: Provides quick access to start/log workouts, view activity calendar, and see recent workouts
-- **Success criteria**: Action buttons prominently placed; calendar shows workout details with readable font; recent workouts show meaningful time gap indicators; no separate Stats tab (consolidated into Home)
+- **Purpose**: Provides quick access to start/log workouts, view activity calendar, see recent workouts, and receive motivational reminders
+- **Success criteria**: Action buttons prominently placed; workout reminder displays appropriate message; calendar shows workout details with readable font; recent workouts show meaningful time gap indicators; no separate Stats tab (consolidated into Home)
 
 ## Edge Case Handling
 

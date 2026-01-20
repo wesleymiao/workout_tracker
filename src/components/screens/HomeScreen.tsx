@@ -1,5 +1,5 @@
 import { useLocalStorage } from '@/hooks/use-local-storage'
-import { Plus, ClockCounterClockwise, Trash, CaretLeft, CaretRight } from '@phosphor-icons/react'
+import { Plus, ClockCounterClockwise, Trash, CaretLeft, CaretRight, Warning, Fire } from '@phosphor-icons/react'
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
 import { useState, useMemo } from 'react'
@@ -75,6 +75,82 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
   const completedWorkouts = useMemo(() => {
     return workouts.filter(w => w.completed)
   }, [workouts])
+
+  // Calculate days since last workout for reminder
+  const daysSinceLastWorkout = useMemo(() => {
+    if (completedWorkouts.length === 0) return null
+    
+    const sortedWorkouts = [...completedWorkouts].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    )
+    
+    const lastWorkoutDate = new Date(sortedWorkouts[0].date)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    lastWorkoutDate.setHours(0, 0, 0, 0)
+    
+    const diffTime = today.getTime() - lastWorkoutDate.getTime()
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+    
+    return diffDays
+  }, [completedWorkouts])
+
+  // Get reminder message based on days since last workout
+  const getWorkoutReminder = () => {
+    if (daysSinceLastWorkout === null) {
+      return {
+        show: true,
+        type: 'welcome' as const,
+        message: "Welcome! Start your fitness journey today! 💪",
+        subMessage: "Your first workout awaits"
+      }
+    }
+    
+    if (daysSinceLastWorkout === 0) {
+      return {
+        show: true,
+        type: 'great' as const,
+        message: "Great job! You worked out today! 🔥",
+        subMessage: "Keep up the amazing work"
+      }
+    }
+    
+    if (daysSinceLastWorkout === 1) {
+      return {
+        show: false,
+        type: 'ok' as const,
+        message: "",
+        subMessage: ""
+      }
+    }
+    
+    if (daysSinceLastWorkout <= 3) {
+      return {
+        show: true,
+        type: 'gentle' as const,
+        message: `${daysSinceLastWorkout} days since your last workout`,
+        subMessage: "Ready to get back on track?"
+      }
+    }
+    
+    if (daysSinceLastWorkout <= 7) {
+      return {
+        show: true,
+        type: 'warning' as const,
+        message: `You haven't worked out for ${daysSinceLastWorkout} days`,
+        subMessage: "Don't break your momentum!"
+      }
+    }
+    
+    return {
+      show: true,
+      type: 'urgent' as const,
+      message: `It's been ${daysSinceLastWorkout} days since your last workout!`,
+      subMessage: "Every journey starts with a single step. Let's go!"
+    }
+  }
+
+  const workoutReminder = getWorkoutReminder()
 
   const recentWorkouts = workouts
     .filter(w => w.completed && new Date(w.date) >= thirtyDaysAgo)
@@ -183,6 +259,59 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
 
   return (
     <div className="p-4 pt-12 space-y-6 pb-24">
+      {/* Workout Reminder Banner */}
+      {workoutReminder.show && (
+        <Card className={`p-4 border-l-4 ${
+          workoutReminder.type === 'great' 
+            ? 'bg-green-500/10 border-l-green-500' 
+            : workoutReminder.type === 'welcome'
+            ? 'bg-accent/10 border-l-accent'
+            : workoutReminder.type === 'gentle'
+            ? 'bg-yellow-500/10 border-l-yellow-500'
+            : workoutReminder.type === 'warning'
+            ? 'bg-orange-500/10 border-l-orange-500'
+            : 'bg-red-500/10 border-l-red-500'
+        }`}>
+          <div className="flex items-start gap-3">
+            <div className={`mt-0.5 ${
+              workoutReminder.type === 'great' 
+                ? 'text-green-500' 
+                : workoutReminder.type === 'welcome'
+                ? 'text-accent'
+                : workoutReminder.type === 'gentle'
+                ? 'text-yellow-500'
+                : workoutReminder.type === 'warning'
+                ? 'text-orange-500'
+                : 'text-red-500'
+            }`}>
+              {workoutReminder.type === 'great' || workoutReminder.type === 'welcome' ? (
+                <Fire size={24} weight="fill" />
+              ) : (
+                <Warning size={24} weight="fill" />
+              )}
+            </div>
+            <div className="flex-1">
+              <p className={`font-semibold ${
+                workoutReminder.type === 'great' 
+                  ? 'text-green-500' 
+                  : workoutReminder.type === 'welcome'
+                  ? 'text-accent'
+                  : workoutReminder.type === 'gentle'
+                  ? 'text-yellow-500'
+                  : workoutReminder.type === 'warning'
+                  ? 'text-orange-500'
+                  : 'text-red-500'
+              }`}>
+                {workoutReminder.message}
+              </p>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {workoutReminder.subMessage}
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Resume Workout Card (if in-progress) */}
       {activeWorkout && !activeWorkout.completed && (
         <Card className="p-4 bg-accent/10 border-accent/30">
