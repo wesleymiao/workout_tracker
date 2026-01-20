@@ -29,14 +29,35 @@ export default function ActiveWorkoutScreen({ isPastWorkoutMode = false, onExitP
   const [showSummary, setShowSummary] = useState(false)
   const [selectedType, setSelectedType] = useState<WorkoutType | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
+  
+  // Check if active workout is valid (not stale)
+  // A workout is stale if its ID exists in the completed workouts list
+  const isActiveWorkoutValid = (workout: Workout | null, completedWorkouts: Workout[]): boolean => {
+    if (!workout) return false
+    if (workout.completed) return false
+    // If active workout ID exists in completed workouts, it's stale
+    return !completedWorkouts.some(w => w.id === workout.id)
+  }
+
   const [phase, setPhase] = useState<WorkoutPhase>(() => {
     // Determine initial phase based on stored active workout
     // This runs only once on mount
     const stored = localStorage.getItem('active-workout')
+    const storedWorkouts = localStorage.getItem('workouts')
+    
     if (stored) {
       try {
         const workout = JSON.parse(stored)
+        const completedWorkouts = storedWorkouts ? JSON.parse(storedWorkouts).filter((w: Workout) => w.completed) : []
+        
+        // Check if the active workout is stale (ID matches a completed workout)
         if (workout && !workout.completed) {
+          const isStale = completedWorkouts.some((w: Workout) => w.id === workout.id)
+          if (isStale) {
+            // Clear the stale active workout
+            localStorage.removeItem('active-workout')
+            return 'type-selection'
+          }
           return 'active'
         }
       } catch (e) {

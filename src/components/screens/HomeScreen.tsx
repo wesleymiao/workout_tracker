@@ -76,6 +76,27 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
     return workouts.filter(w => w.completed)
   }, [workouts])
 
+  // Check if active workout is stale (ID matches a completed workout)
+  // This can happen if the workout was completed but the active-workout storage wasn't cleared
+  const isActiveWorkoutValid = useMemo(() => {
+    if (!activeWorkout) return false
+    if (activeWorkout.completed) return false
+    // If active workout ID exists in completed workouts, it's stale
+    const existsInCompleted = completedWorkouts.some(w => w.id === activeWorkout.id)
+    if (existsInCompleted) {
+      // Clear the stale active workout
+      return false
+    }
+    return true
+  }, [activeWorkout, completedWorkouts])
+
+  // Auto-clear stale active workout
+  useMemo(() => {
+    if (activeWorkout && !isActiveWorkoutValid) {
+      setActiveWorkout(null)
+    }
+  }, [activeWorkout, isActiveWorkoutValid, setActiveWorkout])
+
   // Calculate days since last workout for reminder
   const daysSinceLastWorkout = useMemo(() => {
     if (completedWorkouts.length === 0) return null
@@ -312,8 +333,8 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
         </Card>
       )}
 
-      {/* Resume Workout Card (if in-progress) */}
-      {activeWorkout && !activeWorkout.completed && (
+      {/* Resume Workout Card (if in-progress and valid) */}
+      {isActiveWorkoutValid && activeWorkout && (
         <Card className="p-4 bg-accent/10 border-accent/30">
           <div className="flex items-center justify-between">
             <div>

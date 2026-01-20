@@ -122,6 +122,7 @@ This app manages workout sessions, exercise tracking, and historical data with s
 
 - **Empty History**: First-time users see empty exercise list with "Add Exercise" prompt
 - **Mid-Workout Exit**: In-progress workout auto-saves; resume banner appears on return
+- **Stale Active Workout**: If an in-progress workout has the same ID as a completed workout (due to sync issues or data corruption), the in-progress workout is automatically invalidated and cleared; the completed workout takes precedence
 - **Invalid Inputs**: Weight/rep/set fields validate for positive numbers; distance/duration require proper formats
 - **Checklist Empty**: If no items configured, skip directly to exercise planning
 - **Network Offline**: All features work offline since data persists in browser localStorage
