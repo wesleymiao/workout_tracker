@@ -14,8 +14,9 @@ This app manages workout sessions, exercise tracking, and historical data with s
 
 ### Pre-Workout Checklist
 - **Functionality**: Displays dynamic checklist of items based on workout type selected
-  - **Common items** (all workout types): 水壶, 毛巾, 耳机, 拖鞋
+  - **Common items** (all workout types): 水壶, 毛巾, 耳机, 运动服, 拖鞋 
   - **Swim-specific items**: 游泳包
+  - **Legs-specific items**: 护膝
 - **Purpose**: Ensures user doesn't forget essentials before leaving for gym
 - **Trigger**: After user selects workout type
 - **Progression**: Home → Select workout type → Checklist Modal → Check items → Exercise planning

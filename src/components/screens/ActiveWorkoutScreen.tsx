@@ -24,7 +24,7 @@ interface ActiveWorkoutScreenProps {
 export default function ActiveWorkoutScreen({ isPastWorkoutMode = false, onExitPastWorkoutMode }: ActiveWorkoutScreenProps) {
   const [activeWorkout, setActiveWorkout] = useLocalStorage<Workout | null>('active-workout', null)
   const [workouts, setWorkouts] = useLocalStorage<Workout[]>('workouts', [])
-  const DEFAULT_CHECKLIST_ITEMS = ['水壶', '毛巾', '耳机', '拖鞋']
+  const DEFAULT_CHECKLIST_ITEMS = ['水壶', '毛巾', '耳机', '运动服', '拖鞋']
   const [checklistItems, setChecklistItems] = useLocalStorage<string[]>('checklist-items', DEFAULT_CHECKLIST_ITEMS)
   const [showSummary, setShowSummary] = useState(false)
   const [selectedType, setSelectedType] = useState<WorkoutType | null>(null)

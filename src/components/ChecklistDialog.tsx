@@ -17,8 +17,9 @@ interface ChecklistDialogProps {
 }
 
 // Default checklist items based on workout type (aligned with PRD)
-const DEFAULT_COMMON_ITEMS = ['水壶', '毛巾', '耳机', '拖鞋']
+const DEFAULT_COMMON_ITEMS = ['水壶', '毛巾', '耳机', '运动服', '拖鞋']
 const SWIM_SPECIFIC_ITEMS = ['游泳包']
+const LEGS_SPECIFIC_ITEMS = ['护膝']
 
 export default function ChecklistDialog({
   open,
@@ -37,6 +38,14 @@ export default function ChecklistDialog({
     if (workoutType === 'Swim') {
       // Add swim-specific items if not already present
       SWIM_SPECIFIC_ITEMS.forEach(item => {
+        if (!allItems.includes(item)) {
+          allItems.push(item)
+        }
+      })
+    }
+    if (workoutType === 'Legs') {
+      // Add legs-specific items if not already present
+      LEGS_SPECIFIC_ITEMS.forEach(item => {
         if (!allItems.includes(item)) {
           allItems.push(item)
         }
@@ -100,7 +109,7 @@ export default function ChecklistDialog({
               >
                 {item}
               </label>
-              {!SWIM_SPECIFIC_ITEMS.includes(item) && (
+              {!SWIM_SPECIFIC_ITEMS.includes(item) && !LEGS_SPECIFIC_ITEMS.includes(item) && (
                 <Button
                   variant="ghost"
                   size="icon"
