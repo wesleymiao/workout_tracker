@@ -6,7 +6,7 @@ import { Input } from './ui/input'
 import { Label } from './ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
-import { Plus, PencilSimple, Trash, Waves, Sneaker, Barbell } from '@phosphor-icons/react'
+import { Plus, PencilSimple, Trash, Waves, Sneaker, Barbell, CaretUp, CaretDown } from '@phosphor-icons/react'
 import { generateId } from '@/lib/workout-utils'
 import { toast } from 'sonner'
 
@@ -121,6 +121,25 @@ export default function ExercisePlanner({ workout, onUpdateWorkout, onStartWorko
     }
     setShowAddDialog(false)
     setEditingExercise(null)
+  }
+
+  const handleMoveExercise = (exerciseId: string, direction: 'up' | 'down') => {
+    const exercises = [...workout.exercises]
+    const currentIndex = exercises.findIndex(e => e.id === exerciseId)
+    if (currentIndex === -1) return
+
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+    if (newIndex < 0 || newIndex >= exercises.length) return
+
+    // Swap exercises
+    const temp = exercises[currentIndex]
+    exercises[currentIndex] = exercises[newIndex]
+    exercises[newIndex] = temp
+
+    onUpdateWorkout({
+      ...workout,
+      exercises
+    })
   }
 
   const canStartWorkout = () => {
@@ -274,26 +293,53 @@ export default function ExercisePlanner({ workout, onUpdateWorkout, onStartWorko
           </Card>
         ) : (
           <div className="space-y-2">
-            {equipmentExercises.map((exercise) => (
-              <Card key={exercise.id} className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium">{exercise.name}</h4>
-                    <p className="text-sm text-muted-foreground font-mono">
-                      {exercise.weight}kg × {exercise.targetReps} reps × {exercise.targetSets} sets
-                    </p>
+            {equipmentExercises.map((exercise, idx) => {
+              const fullIndex = workout.exercises.findIndex(e => e.id === exercise.id)
+              const isFirst = fullIndex === 0
+              const isLast = fullIndex === workout.exercises.length - 1
+              return (
+                <Card key={exercise.id} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="flex flex-col">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => handleMoveExercise(exercise.id, 'up')}
+                          disabled={isFirst}
+                        >
+                          <CaretUp size={16} weight="bold" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => handleMoveExercise(exercise.id, 'down')}
+                          disabled={isLast}
+                        >
+                          <CaretDown size={16} weight="bold" />
+                        </Button>
+                      </div>
+                      <div>
+                        <h4 className="font-medium">{exercise.name}</h4>
+                        <p className="text-sm text-muted-foreground font-mono">
+                          {exercise.weight}kg × {exercise.targetReps} reps × {exercise.targetSets} sets
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => handleEditExercise(exercise)}>
+                        <PencilSimple size={18} />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteExercise(exercise.id)}>
+                        <Trash size={18} />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => handleEditExercise(exercise)}>
-                      <PencilSimple size={18} />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDeleteExercise(exercise.id)}>
-                      <Trash size={18} />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              )
+            })}
           </div>
         )}
       </div>
@@ -311,26 +357,53 @@ export default function ExercisePlanner({ workout, onUpdateWorkout, onStartWorko
           </Card>
         ) : (
           <div className="space-y-2">
-            {cardioExercises.map((exercise) => (
-              <Card key={exercise.id} className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium">{exercise.name}</h4>
-                    <p className="text-sm text-muted-foreground font-mono">
-                      {exercise.targetDistance}km
-                    </p>
+            {cardioExercises.map((exercise, idx) => {
+              const fullIndex = workout.exercises.findIndex(e => e.id === exercise.id)
+              const isFirst = fullIndex === 0
+              const isLast = fullIndex === workout.exercises.length - 1
+              return (
+                <Card key={exercise.id} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="flex flex-col">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => handleMoveExercise(exercise.id, 'up')}
+                          disabled={isFirst}
+                        >
+                          <CaretUp size={16} weight="bold" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => handleMoveExercise(exercise.id, 'down')}
+                          disabled={isLast}
+                        >
+                          <CaretDown size={16} weight="bold" />
+                        </Button>
+                      </div>
+                      <div>
+                        <h4 className="font-medium">{exercise.name}</h4>
+                        <p className="text-sm text-muted-foreground font-mono">
+                          {exercise.targetDistance}km
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => handleEditExercise(exercise)}>
+                        <PencilSimple size={18} />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteExercise(exercise.id)}>
+                        <Trash size={18} />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => handleEditExercise(exercise)}>
-                      <PencilSimple size={18} />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDeleteExercise(exercise.id)}>
-                      <Trash size={18} />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              )
+            })}
           </div>
         )}
       </div>

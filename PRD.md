@@ -41,15 +41,20 @@ This app manages workout sessions, exercise tracking, and historical data with s
   - **Run (Gym) / Run (Outdoor)**: Target distance only (in kilometers)
   - **Pull / Push / Legs**: Add equipment exercises (weight/reps/sets) and cardio exercises (distance only)
 - **Smart Pre-population**: Displays the last 5 workouts of the same type; user selects which workout to populate from (or starts fresh)
+- **Exercise Ordering**:
+  - Exercises are displayed in the exact order they were added
+  - User can reorder exercises using drag-and-drop or up/down arrow buttons
+  - Drag handles or arrow buttons are clearly visible for touch interaction
+  - Order is preserved when starting the workout
 - **Purpose**: Speeds up planning while allowing progressive overload; gives user control over which past workout to reference
 - **Trigger**: After workout type selection
-- **Progression**: Type selected → Past 5 workouts shown → User selects one to populate from (or skips) → Input fields appear based on workout type → User adjusts targets → Begins workout
-- **Success criteria**: Past 5 workouts load instantly; type-specific inputs display correctly; selected workout data populates fields; edits save; different data per workout type
+- **Progression**: Type selected → Past 5 workouts shown → User selects one to populate from (or skips) → Input fields appear based on workout type → User adjusts targets → Reorder exercises as needed → Begins workout
+- **Success criteria**: Past 5 workouts load instantly; type-specific inputs display correctly; selected workout data populates fields; edits save; different data per workout type; exercise order is preserved and adjustable
 
 ### Real-time Exercise Logging
 - **Functionality**: Mark exercises complete; adjust actual values during workout (reps/sets/weight/distance)
   - When editing an exercise, its existing data is prepopulated in the edit form
-  - When adding exercises to the workout, the order of addition is preserved and displayed exactly as added
+  - **Exercise Ordering**: Exercises are displayed in the exact order they were added; users can reorder exercises at any time using drag-and-drop or up/down arrow buttons
 - **Visual Encouragement**: Celebratory animations when completing pre-set targets
   - Progress ring fills as sets/exercises are completed
   - Confetti burst animation when all targets for an exercise are met
@@ -63,7 +68,7 @@ This app manages workout sessions, exercise tracking, and historical data with s
 - **Purpose**: Captures what actually happened vs. what was planned; motivates users to complete all planned targets
 - **Trigger**: User completes a set or exercise
 - **Progression**: During workout → Tap exercise card → Mark set complete or adjust values → Celebration animation plays → Return to list
-- **Success criteria**: Changes save immediately; visual feedback on completion; animations feel rewarding without being intrusive; reminders encourage completion without being annoying; easy to undo mistakes
+- **Success criteria**: Changes save immediately; visual feedback on completion; animations feel rewarding without being intrusive; reminders encourage completion without being annoying; easy to undo mistakes; exercise order is preserved and can be adjusted during workout
 
 ### Workout Summary & Completion
 - **Functionality**: "Finish Workout" button; displays exercises completed and notable achievements

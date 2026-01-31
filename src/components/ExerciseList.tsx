@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { Workout, Exercise, EquipmentExercise, CardioExercise, SwimExercise, RunExercise, isStrengthWorkout, isSwimWorkout, isRunWorkout } from '@/lib/types'
 import { Card } from './ui/card'
 import { Button } from './ui/button'
-import { Plus, CheckCircle, PencilSimple, Warning } from '@phosphor-icons/react'
+import { Plus, CheckCircle, PencilSimple, Warning, CaretUp, CaretDown } from '@phosphor-icons/react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
@@ -54,7 +54,7 @@ export default function ExerciseList({ workout, onUpdateWorkout }: ExerciseListP
   const handleToggleComplete = (exerciseId: string) => {
     const exercise = workout.exercises.find(e => e.id === exerciseId)
     const wasCompleted = exercise?.completed
-    
+
     onUpdateWorkout({
       ...workout,
       exercises: workout.exercises.map(e =>
@@ -68,6 +68,25 @@ export default function ExerciseList({ workout, onUpdateWorkout }: ExerciseListP
         duration: 2000,
       })
     }
+  }
+
+  const handleMoveExercise = (exerciseId: string, direction: 'up' | 'down') => {
+    const exercises = [...workout.exercises]
+    const currentIndex = exercises.findIndex(e => e.id === exerciseId)
+    if (currentIndex === -1) return
+
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+    if (newIndex < 0 || newIndex >= exercises.length) return
+
+    // Swap exercises
+    const temp = exercises[currentIndex]
+    exercises[currentIndex] = exercises[newIndex]
+    exercises[newIndex] = temp
+
+    onUpdateWorkout({
+      ...workout,
+      exercises
+    })
   }
 
   // Render for Swim workouts
@@ -150,8 +169,11 @@ export default function ExerciseList({ workout, onUpdateWorkout }: ExerciseListP
               key={exercise.id}
               exercise={exercise}
               index={index}
+              totalCount={workout.exercises.length}
               onToggleComplete={() => handleToggleComplete(exercise.id)}
               onEdit={() => handleEditExercise(exercise)}
+              onMoveUp={() => handleMoveExercise(exercise.id, 'up')}
+              onMoveDown={() => handleMoveExercise(exercise.id, 'down')}
               onUpdateSets={exercise.type === 'equipment' ? (completedSets) => {
                 const isNowComplete = completedSets >= (exercise as EquipmentExercise).targetSets
                 onUpdateWorkout({
@@ -187,13 +209,18 @@ export default function ExerciseList({ workout, onUpdateWorkout }: ExerciseListP
 interface ExerciseCardProps {
   exercise: Exercise
   index: number
+  totalCount: number
   onToggleComplete: () => void
   onEdit: () => void
   onUpdateSets?: (completedSets: number) => void
+  onMoveUp: () => void
+  onMoveDown: () => void
 }
 
-function ExerciseCard({ exercise, index, onToggleComplete, onEdit, onUpdateSets }: ExerciseCardProps) {
+function ExerciseCard({ exercise, index, totalCount, onToggleComplete, onEdit, onUpdateSets, onMoveUp, onMoveDown }: ExerciseCardProps) {
   const [isFlickering, setIsFlickering] = useState(false)
+  const isFirst = index === 0
+  const isLast = index === totalCount - 1
 
   // Flickering animation for uncompleted items after delay
   useEffect(() => {
@@ -222,6 +249,28 @@ function ExerciseCard({ exercise, index, onToggleComplete, onEdit, onUpdateSets 
       style={{ animationDelay: `${index * 50}ms` }}
     >
       <div className="flex items-start gap-3">
+        {/* Reorder buttons */}
+        <div className="flex flex-col flex-shrink-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0"
+            onClick={onMoveUp}
+            disabled={isFirst}
+          >
+            <CaretUp size={16} weight="bold" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0"
+            onClick={onMoveDown}
+            disabled={isLast}
+          >
+            <CaretDown size={16} weight="bold" />
+          </Button>
+        </div>
+
         <button
           onClick={onToggleComplete}
           className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
