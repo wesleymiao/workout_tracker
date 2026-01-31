@@ -41,10 +41,11 @@ This app manages workout sessions, exercise tracking, and historical data with s
   - **Run (Gym) / Run (Outdoor)**: Target distance only (in kilometers)
   - **Pull / Push / Legs**: Add equipment exercises (weight/reps/sets) and cardio exercises (distance only)
 - **Smart Pre-population**: Displays the last 5 workouts of the same type; user selects which workout to populate from (or starts fresh)
-- **Exercise Ordering**:
-  - Exercises are displayed in the exact order they were added
-  - User can reorder exercises using drag-and-drop or up/down arrow buttons
-  - Drag handles or arrow buttons are clearly visible for touch interaction
+- **Exercise Display**:
+  - All exercises (equipment and cardio) are displayed in a single unified list
+  - Exercises are shown in the exact order they were added, regardless of type
+  - User can reorder exercises using up/down arrow buttons
+  - Arrow buttons are clearly visible for touch interaction
   - Order is preserved when starting the workout
 - **Purpose**: Speeds up planning while allowing progressive overload; gives user control over which past workout to reference
 - **Trigger**: After workout type selection
@@ -95,8 +96,9 @@ This app manages workout sessions, exercise tracking, and historical data with s
   1. **Workout Reminder Banner** (motivational message based on workout frequency)
   2. Resume workout card (if in-progress workout exists)
   3. **Start Workout** and **Log Past Workout** buttons
-  4. Activity Calendar with month navigation and workout details in each cell
-  5. Recent Workouts section
+  4. **Monthly Stats** section with comparison to previous month
+  5. Activity Calendar with month navigation and workout details in each cell
+  6. Recent Workouts section
 - **Workout Reminder Banner**:
   - Displays contextual motivational messages based on days since last workout
   - **Welcome message**: Shows for first-time users encouraging them to start
@@ -106,6 +108,16 @@ This app manages workout sessions, exercise tracking, and historical data with s
   - **Urgent reminder** (red): 7+ days since last workout - Encouraging message to restart
   - Hidden when only 1 day has passed (user is likely resting)
   - Color-coded left border and icon for quick visual identification
+- **Monthly Stats**:
+  - Displays key metrics for the current month with delta comparison to previous month
+  - **Total Workouts**: Count of completed workouts this month vs last month
+  - **By Type Breakdown**: Count of each workout type (Pull, Push, Legs, Swim, Run) for the month
+  - **Delta Indicators**: Shows +N or -N compared to previous month with color coding
+    - Green with up arrow for improvement (more workouts)
+    - Red with down arrow for decline (fewer workouts)
+    - Gray for no change
+  - Compact card layout that doesn't overwhelm the home screen
+  - Stats update automatically as workouts are logged
 - **Activity Calendar**:
   - Displays calendar grid with workout details in each day cell
   - **Swim workouts**: Shows "Swim: 800m" with actual/target distance in meters
@@ -121,8 +133,8 @@ This app manages workout sessions, exercise tracking, and historical data with s
   - Indicator helps users track workout frequency per type at a glance
   - If no previous workout of the same type exists, no indicator is shown
   - Workouts sorted by date (most recent first)
-- **Purpose**: Provides quick access to start/log workouts, view activity calendar, see recent workouts, and receive motivational reminders
-- **Success criteria**: Action buttons prominently placed; workout reminder displays appropriate message; calendar shows workout details with readable font; recent workouts show meaningful time gap indicators; no separate Stats tab (consolidated into Home)
+- **Purpose**: Provides quick access to start/log workouts, view monthly stats, activity calendar, see recent workouts, and receive motivational reminders
+- **Success criteria**: Action buttons prominently placed; workout reminder displays appropriate message; monthly stats show current month metrics with delta to previous month; calendar shows workout details with readable font; recent workouts show meaningful time gap indicators; no separate Stats tab (consolidated into Home)
 
 ## Edge Case Handling
 

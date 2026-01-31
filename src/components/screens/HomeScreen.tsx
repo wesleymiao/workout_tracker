@@ -1,5 +1,5 @@
 import { useLocalStorage } from '@/hooks/use-local-storage'
-import { Plus, ClockCounterClockwise, Trash, CaretLeft, CaretRight, Warning, Fire } from '@phosphor-icons/react'
+import { Plus, ClockCounterClockwise, Trash, CaretLeft, CaretRight, Warning, Fire, TrendUp, TrendDown } from '@phosphor-icons/react'
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
 import { useState, useMemo } from 'react'
@@ -47,7 +47,7 @@ const formatWorkoutLabel = (workout: Workout): string => {
     }
     return 'Swim'
   }
-  
+
   if (workout.type === 'Run (Gym)' || workout.type === 'Run (Outdoor)') {
     const runEx = workout.exercises.find(e => e.type === 'run')
     if (runEx && 'actualDistance' in runEx && runEx.actualDistance) {
@@ -58,8 +58,31 @@ const formatWorkoutLabel = (workout: Workout): string => {
     }
     return 'Run'
   }
-  
+
   return workout.type
+}
+
+function DeltaBadge({ current, previous }: { current: number; previous: number }) {
+  const delta = current - previous
+
+  if (delta === 0) {
+    return (
+      <span className="text-sm text-muted-foreground font-mono px-2 py-1 rounded bg-secondary">
+        vs last month
+      </span>
+    )
+  }
+
+  const isPositive = delta > 0
+
+  return (
+    <span className={`flex items-center gap-1 text-sm font-mono px-2 py-1 rounded ${
+      isPositive ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'
+    }`}>
+      {isPositive ? <TrendUp size={16} weight="bold" /> : <TrendDown size={16} weight="bold" />}
+      {isPositive ? '+' : ''}{delta} vs last month
+    </span>
+  )
 }
 
 export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
@@ -100,20 +123,70 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
   // Calculate days since last workout for reminder
   const daysSinceLastWorkout = useMemo(() => {
     if (completedWorkouts.length === 0) return null
-    
+
     const sortedWorkouts = [...completedWorkouts].sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     )
-    
+
     const lastWorkoutDate = new Date(sortedWorkouts[0].date)
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     lastWorkoutDate.setHours(0, 0, 0, 0)
-    
+
     const diffTime = today.getTime() - lastWorkoutDate.getTime()
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
-    
+
     return diffDays
+  }, [completedWorkouts])
+
+  // Calculate monthly stats with comparison to previous month
+  const monthlyStats = useMemo(() => {
+    const now = new Date()
+    const currentYear = now.getFullYear()
+    const currentMonth = now.getMonth()
+
+    const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1
+    const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear
+
+    const isInMonth = (date: Date, year: number, month: number) => {
+      return date.getFullYear() === year && date.getMonth() === month
+    }
+
+    const currentMonthWorkouts = completedWorkouts.filter(w =>
+      isInMonth(new Date(w.date), currentYear, currentMonth)
+    )
+
+    const prevMonthWorkouts = completedWorkouts.filter(w =>
+      isInMonth(new Date(w.date), prevYear, prevMonth)
+    )
+
+    const countByType = (workoutList: Workout[]) => {
+      const counts: Record<string, number> = {
+        'Pull': 0,
+        'Push': 0,
+        'Legs': 0,
+        'Swim': 0,
+        'Run': 0
+      }
+      workoutList.forEach(w => {
+        if (w.type === 'Run (Gym)' || w.type === 'Run (Outdoor)') {
+          counts['Run']++
+        } else {
+          counts[w.type]++
+        }
+      })
+      return counts
+    }
+
+    const currentCounts = countByType(currentMonthWorkouts)
+    const prevCounts = countByType(prevMonthWorkouts)
+
+    return {
+      total: currentMonthWorkouts.length,
+      prevTotal: prevMonthWorkouts.length,
+      byType: currentCounts,
+      prevByType: prevCounts
+    }
   }, [completedWorkouts])
 
   // Get reminder message based on days since last workout
@@ -380,6 +453,45 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
           <ClockCounterClockwise size={20} weight="bold" />
           Log Past Workout
         </Button>
+      </div>
+
+      {/* Monthly Stats */}
+      <div>
+        <h2 className="text-xl font-semibold mb-3">This Month</h2>
+        <Card className="p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-sm text-muted-foreground">Total Workouts</p>
+              <p className="text-3xl font-bold font-mono">{monthlyStats.total}</p>
+            </div>
+            <DeltaBadge current={monthlyStats.total} previous={monthlyStats.prevTotal} />
+          </div>
+
+          <div className="grid grid-cols-5 gap-2">
+            {(['Pull', 'Push', 'Legs', 'Swim', 'Run'] as const).map(type => {
+              const current = monthlyStats.byType[type]
+              const previous = monthlyStats.prevByType[type]
+              const delta = current - previous
+              const colorClass = type === 'Pull' ? 'text-blue-400'
+                : type === 'Push' ? 'text-red-400'
+                : type === 'Legs' ? 'text-green-400'
+                : type === 'Swim' ? 'text-cyan-400'
+                : 'text-orange-400'
+
+              return (
+                <div key={type} className="text-center">
+                  <p className={`text-xs font-medium ${colorClass}`}>{type}</p>
+                  <p className="text-lg font-bold font-mono">{current}</p>
+                  {delta !== 0 && (
+                    <p className={`text-xs font-mono ${delta > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {delta > 0 ? '+' : ''}{delta}
+                    </p>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </Card>
       </div>
 
       {/* Workout Activity Calendar */}

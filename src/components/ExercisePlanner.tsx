@@ -274,93 +274,27 @@ export default function ExercisePlanner({ workout, onUpdateWorkout, onStartWorko
     )
   }
 
-  // Strength workouts (Pull/Push/Legs) - equipment + cardio exercises
-  const equipmentExercises = workout.exercises.filter(e => e.type === 'equipment') as EquipmentExercise[]
-  const cardioExercises = workout.exercises.filter(e => e.type === 'cardio') as CardioExercise[]
-
+  // Strength workouts (Pull/Push/Legs) - unified exercise list
   return (
     <div className="space-y-6">
-      {/* Equipment Exercises */}
+      {/* Exercises */}
       <div>
         <div className="flex items-center gap-2 mb-3">
           <Barbell size={20} className="text-accent" weight="fill" />
-          <h3 className="font-semibold">Equipment Exercises</h3>
+          <h3 className="font-semibold">Exercises</h3>
         </div>
-        
-        {equipmentExercises.length === 0 ? (
-          <Card className="p-4 text-center text-muted-foreground">
-            No equipment exercises added yet
-          </Card>
-        ) : (
-          <div className="space-y-2">
-            {equipmentExercises.map((exercise, idx) => {
-              const fullIndex = workout.exercises.findIndex(e => e.id === exercise.id)
-              const isFirst = fullIndex === 0
-              const isLast = fullIndex === workout.exercises.length - 1
-              return (
-                <Card key={exercise.id} className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="flex flex-col">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={() => handleMoveExercise(exercise.id, 'up')}
-                          disabled={isFirst}
-                        >
-                          <CaretUp size={16} weight="bold" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={() => handleMoveExercise(exercise.id, 'down')}
-                          disabled={isLast}
-                        >
-                          <CaretDown size={16} weight="bold" />
-                        </Button>
-                      </div>
-                      <div>
-                        <h4 className="font-medium">{exercise.name}</h4>
-                        <p className="text-sm text-muted-foreground font-mono">
-                          {exercise.weight}kg × {exercise.targetReps} reps × {exercise.targetSets} sets
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => handleEditExercise(exercise)}>
-                        <PencilSimple size={18} />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDeleteExercise(exercise.id)}>
-                        <Trash size={18} />
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              )
-            })}
-          </div>
-        )}
-      </div>
 
-      {/* Cardio Exercises */}
-      <div>
-        <div className="flex items-center gap-2 mb-3">
-          <Sneaker size={20} className="text-accent" weight="fill" />
-          <h3 className="font-semibold">Cardio Exercises</h3>
-        </div>
-        
-        {cardioExercises.length === 0 ? (
+        {workout.exercises.length === 0 ? (
           <Card className="p-4 text-center text-muted-foreground">
-            No cardio exercises added yet
+            No exercises added yet
           </Card>
         ) : (
           <div className="space-y-2">
-            {cardioExercises.map((exercise, idx) => {
-              const fullIndex = workout.exercises.findIndex(e => e.id === exercise.id)
-              const isFirst = fullIndex === 0
-              const isLast = fullIndex === workout.exercises.length - 1
+            {workout.exercises.map((exercise, index) => {
+              const isFirst = index === 0
+              const isLast = index === workout.exercises.length - 1
+              const isEquipment = exercise.type === 'equipment'
+
               return (
                 <Card key={exercise.id} className="p-4">
                   <div className="flex items-center justify-between">
@@ -385,11 +319,21 @@ export default function ExercisePlanner({ workout, onUpdateWorkout, onStartWorko
                           <CaretDown size={16} weight="bold" />
                         </Button>
                       </div>
-                      <div>
-                        <h4 className="font-medium">{exercise.name}</h4>
-                        <p className="text-sm text-muted-foreground font-mono">
-                          {exercise.targetDistance}km
-                        </p>
+                      <div className="flex items-center gap-2">
+                        {isEquipment ? (
+                          <Barbell size={16} className="text-muted-foreground" />
+                        ) : (
+                          <Sneaker size={16} className="text-muted-foreground" />
+                        )}
+                        <div>
+                          <h4 className="font-medium">{exercise.name}</h4>
+                          <p className="text-sm text-muted-foreground font-mono">
+                            {isEquipment
+                              ? `${(exercise as EquipmentExercise).weight}kg × ${(exercise as EquipmentExercise).targetReps} reps × ${(exercise as EquipmentExercise).targetSets} sets`
+                              : `${(exercise as CardioExercise).targetDistance}km`
+                            }
+                          </p>
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
