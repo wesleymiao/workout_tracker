@@ -141,19 +141,18 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
 
   // Calculate monthly stats with comparison to previous month
   const monthlyStats = useMemo(() => {
-    const now = new Date()
-    const currentYear = now.getFullYear()
-    const currentMonth = now.getMonth()
+    const selectedYear = currentMonth.getFullYear()
+    const selectedMonth = currentMonth.getMonth()
 
-    const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1
-    const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear
+    const prevMonth = selectedMonth === 0 ? 11 : selectedMonth - 1
+    const prevYear = selectedMonth === 0 ? selectedYear - 1 : selectedYear
 
     const isInMonth = (date: Date, year: number, month: number) => {
       return date.getFullYear() === year && date.getMonth() === month
     }
 
     const currentMonthWorkouts = completedWorkouts.filter(w =>
-      isInMonth(new Date(w.date), currentYear, currentMonth)
+      isInMonth(new Date(w.date), selectedYear, selectedMonth)
     )
 
     const prevMonthWorkouts = completedWorkouts.filter(w =>
@@ -187,7 +186,7 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
       byType: currentCounts,
       prevByType: prevCounts
     }
-  }, [completedWorkouts])
+  }, [completedWorkouts, currentMonth])
 
   // Get reminder message based on days since last workout
   const getWorkoutReminder = () => {
@@ -457,7 +456,7 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
 
       {/* Monthly Stats */}
       <div>
-        <h2 className="text-xl font-semibold mb-3">This Month</h2>
+        <h2 className="text-xl font-semibold mb-3">Monthly Stats - {monthLabel}</h2>
         <Card className="p-4">
           <div className="flex items-center justify-between mb-4">
             <div>
