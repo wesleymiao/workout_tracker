@@ -623,19 +623,23 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {monthlySummaries.map(summary => (
-                  <TableRow key={summary.monthDate.toISOString()}>
-                    <TableCell className="font-medium">
-                      {summary.monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                    </TableCell>
+                {monthlySummaries.map(summary => {
+                  const monthNumber = String(summary.monthDate.getMonth() + 1).padStart(2, '0')
+                  const shortMonthLabel = `${summary.monthDate.getFullYear()}.${monthNumber}`
+                  return (
+                    <TableRow key={summary.monthDate.toISOString()}>
+                      <TableCell className="font-medium">
+                        {shortMonthLabel}
+                      </TableCell>
                     <TableCell className="text-right font-mono">{summary.total}</TableCell>
                     <TableCell className="text-right font-mono">{summary.byType.Pull}</TableCell>
                     <TableCell className="text-right font-mono">{summary.byType.Push}</TableCell>
                     <TableCell className="text-right font-mono">{summary.byType.Legs}</TableCell>
                     <TableCell className="text-right font-mono">{summary.byType.Swim}</TableCell>
                     <TableCell className="text-right font-mono">{summary.byType.Run}</TableCell>
-                  </TableRow>
-                ))}
+                    </TableRow>
+                  )
+                })}
               </TableBody>
             </Table>
           </Card>
