@@ -459,7 +459,7 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
         </Card>
       )}
 
-      {/* Start Workout / Log Past Workout Buttons */}
+      {/* Start Workout Button */}
       <div className="space-y-3">
         <Button
           onClick={handleStartWorkout}
@@ -469,21 +469,10 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
           <Plus size={24} weight="bold" />
           Start Workout
         </Button>
-
-        <Button
-          onClick={handleLogPastWorkout}
-          variant="outline"
-          className="w-full h-12"
-          size="lg"
-        >
-          <ClockCounterClockwise size={20} weight="bold" />
-          Log Past Workout
-        </Button>
       </div>
 
       {/* Monthly Stats */}
       <div>
-        <h2 className="text-xl font-semibold mb-3">Monthly Stats - {monthLabel}</h2>
         <Card className="p-4">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -645,6 +634,19 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
             </Table>
           </Card>
         )}
+      </div>
+
+      {/* Log Past Workout */}
+      <div>
+        <Button
+          onClick={handleLogPastWorkout}
+          variant="outline"
+          className="w-full h-12"
+          size="lg"
+        >
+          <ClockCounterClockwise size={20} weight="bold" />
+          Log Past Workout
+        </Button>
       </div>
 
       {/* Recent Workouts */}
