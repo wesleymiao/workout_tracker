@@ -82,6 +82,25 @@ const countWorkoutsByType = (workoutList: Workout[]) => {
   return counts
 }
 
+const getRunDistanceKm = (workoutList: Workout[]) => {
+  return workoutList.reduce((total, workout) => {
+    if (!isRunWorkout(workout.type)) return total
+    const runDistance = workout.exercises
+      .filter(exercise => exercise.type === 'run')
+      .reduce((sum, exercise) => {
+        const distance = 'actualDistance' in exercise && exercise.actualDistance
+          ? exercise.actualDistance
+          : exercise.targetDistance
+        return sum + distance
+      }, 0)
+    return total + runDistance
+  }, 0)
+}
+
+const formatRunDistanceKm = (distanceKm: number) => {
+  return distanceKm % 1 === 0 ? distanceKm.toString() : distanceKm.toFixed(1)
+}
+
 export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
   const [workouts, setWorkouts] = useLocalStorage<Workout[]>('workouts', [])
   const [activeWorkout, setActiveWorkout] = useLocalStorage<Workout | null>('active-workout', null)
@@ -155,7 +174,8 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
       .map(({ monthDate, workouts }) => ({
         monthDate,
         total: workouts.length,
-        byType: countWorkoutsByType(workouts)
+        byType: countWorkoutsByType(workouts),
+        runDistanceKm: getRunDistanceKm(workouts)
       }))
       .sort((a, b) => b.monthDate.getTime() - a.monthDate.getTime())
   }, [completedWorkouts])
@@ -449,7 +469,9 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
                     <div className="text-center font-mono">{summary.byType.Push}</div>
                     <div className="text-center font-mono">{summary.byType.Legs}</div>
                     <div className="text-center font-mono">{summary.byType.Swim}</div>
-                    <div className="text-center font-mono">{summary.byType.Run}</div>
+                    <div className="text-center font-mono">
+                      {summary.byType.Run} ({formatRunDistanceKm(summary.runDistanceKm)}km)
+                    </div>
                     <div className="text-center font-mono">{summary.total}</div>
                   </div>
                 )
