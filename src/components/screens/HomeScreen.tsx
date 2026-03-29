@@ -1,8 +1,7 @@
 import { useLocalStorage } from '@/hooks/use-local-storage'
-import { Plus, ClockCounterClockwise, Trash, CaretLeft, CaretRight, Warning, Fire, TrendUp, TrendDown } from '@phosphor-icons/react'
+import { Plus, ClockCounterClockwise, Trash, CaretLeft, CaretRight, Warning, Fire } from '@phosphor-icons/react'
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table'
 import { useState, useMemo } from 'react'
 import { Workout, WorkoutType, isSwimWorkout, isRunWorkout } from '@/lib/types'
 import {
@@ -83,29 +82,6 @@ const countWorkoutsByType = (workoutList: Workout[]) => {
   return counts
 }
 
-function DeltaBadge({ current, previous }: { current: number; previous: number }) {
-  const delta = current - previous
-
-  if (delta === 0) {
-    return (
-      <span className="text-sm text-muted-foreground font-mono px-2 py-1 rounded bg-secondary">
-        vs last month
-      </span>
-    )
-  }
-
-  const isPositive = delta > 0
-
-  return (
-    <span className={`flex items-center gap-1 text-sm font-mono px-2 py-1 rounded ${
-      isPositive ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'
-    }`}>
-      {isPositive ? <TrendUp size={16} weight="bold" /> : <TrendDown size={16} weight="bold" />}
-      {isPositive ? '+' : ''}{delta} vs last month
-    </span>
-  )
-}
-
 export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
   const [workouts, setWorkouts] = useLocalStorage<Workout[]>('workouts', [])
   const [activeWorkout, setActiveWorkout] = useLocalStorage<Workout | null>('active-workout', null)
@@ -159,37 +135,6 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
 
     return diffDays
   }, [completedWorkouts])
-
-  // Calculate monthly stats with comparison to previous month
-  const monthlyStats = useMemo(() => {
-    const selectedYear = currentMonth.getFullYear()
-    const selectedMonth = currentMonth.getMonth()
-
-    const prevMonth = selectedMonth === 0 ? 11 : selectedMonth - 1
-    const prevYear = selectedMonth === 0 ? selectedYear - 1 : selectedYear
-
-    const isInMonth = (date: Date, year: number, month: number) => {
-      return date.getFullYear() === year && date.getMonth() === month
-    }
-
-    const currentMonthWorkouts = completedWorkouts.filter(w =>
-      isInMonth(new Date(w.date), selectedYear, selectedMonth)
-    )
-
-    const prevMonthWorkouts = completedWorkouts.filter(w =>
-      isInMonth(new Date(w.date), prevYear, prevMonth)
-    )
-
-    const currentCounts = countWorkoutsByType(currentMonthWorkouts)
-    const prevCounts = countWorkoutsByType(prevMonthWorkouts)
-
-    return {
-      total: currentMonthWorkouts.length,
-      prevTotal: prevMonthWorkouts.length,
-      byType: currentCounts,
-      prevByType: prevCounts
-    }
-  }, [completedWorkouts, currentMonth])
 
   const monthlySummaries = useMemo(() => {
     const months = new Map<string, { monthDate: Date; workouts: Workout[] }>()
@@ -471,42 +416,59 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
         </Button>
       </div>
 
-      {/* Monthly Stats */}
+      {/* Monthly Stats History */}
       <div>
-        <Card className="p-4">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Total Workouts</p>
-              <p className="text-3xl font-bold font-mono">{monthlyStats.total}</p>
+        <h2 className="text-xl font-semibold mb-3">Monthly Stats History</h2>
+        {monthlySummaries.length === 0 ? (
+          <Card className="p-6 text-center">
+            <p className="text-muted-foreground">No workout history yet</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Log workouts to see monthly stats here
+            </p>
+          </Card>
+        ) : (
+          <Card className="p-4">
+            <div className="space-y-3">
+              {monthlySummaries.map(summary => {
+                const monthNumber = String(summary.monthDate.getMonth() + 1).padStart(2, '0')
+                const shortYear = String(summary.monthDate.getFullYear()).slice(-2)
+                const shortMonthLabel = `${shortYear}.${monthNumber}`
+                return (
+                  <div key={summary.monthDate.toISOString()} className="rounded-md border border-border/50 p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">{shortMonthLabel}</span>
+                      <span className="text-sm text-muted-foreground">
+                        Total <span className="font-mono text-foreground">{summary.total}</span>
+                      </span>
+                    </div>
+                    <div className="mt-2 grid grid-cols-2 sm:grid-cols-5 gap-2 text-sm">
+                      <div className="flex items-center justify-between sm:flex-col sm:items-center sm:gap-1">
+                        <span className="text-xs font-medium text-blue-400">Pull</span>
+                        <span className="font-mono">{summary.byType.Pull}</span>
+                      </div>
+                      <div className="flex items-center justify-between sm:flex-col sm:items-center sm:gap-1">
+                        <span className="text-xs font-medium text-red-400">Push</span>
+                        <span className="font-mono">{summary.byType.Push}</span>
+                      </div>
+                      <div className="flex items-center justify-between sm:flex-col sm:items-center sm:gap-1">
+                        <span className="text-xs font-medium text-green-400">Legs</span>
+                        <span className="font-mono">{summary.byType.Legs}</span>
+                      </div>
+                      <div className="flex items-center justify-between sm:flex-col sm:items-center sm:gap-1">
+                        <span className="text-xs font-medium text-cyan-400">Swim</span>
+                        <span className="font-mono">{summary.byType.Swim}</span>
+                      </div>
+                      <div className="flex items-center justify-between sm:flex-col sm:items-center sm:gap-1">
+                        <span className="text-xs font-medium text-orange-400">Run</span>
+                        <span className="font-mono">{summary.byType.Run}</span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
-            <DeltaBadge current={monthlyStats.total} previous={monthlyStats.prevTotal} />
-          </div>
-
-          <div className="grid grid-cols-5 gap-2">
-            {(['Pull', 'Push', 'Legs', 'Swim', 'Run'] as const).map(type => {
-              const current = monthlyStats.byType[type]
-              const previous = monthlyStats.prevByType[type]
-              const delta = current - previous
-              const colorClass = type === 'Pull' ? 'text-blue-400'
-                : type === 'Push' ? 'text-red-400'
-                : type === 'Legs' ? 'text-green-400'
-                : type === 'Swim' ? 'text-cyan-400'
-                : 'text-orange-400'
-
-              return (
-                <div key={type} className="text-center">
-                  <p className={`text-xs font-medium ${colorClass}`}>{type}</p>
-                  <p className="text-lg font-bold font-mono">{current}</p>
-                  {delta !== 0 && (
-                    <p className={`text-xs font-mono ${delta > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      {delta > 0 ? '+' : ''}{delta}
-                    </p>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </Card>
+          </Card>
+        )}
       </div>
 
       {/* Workout Activity Calendar */}
@@ -585,55 +547,6 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
             })}
           </div>
         </Card>
-      </div>
-
-      {/* Monthly Stats History */}
-      <div>
-        <h2 className="text-xl font-semibold mb-3">Monthly Stats History</h2>
-        {monthlySummaries.length === 0 ? (
-          <Card className="p-6 text-center">
-            <p className="text-muted-foreground">No workout history yet</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Log workouts to see monthly stats here
-            </p>
-          </Card>
-        ) : (
-          <Card className="p-4">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Month</TableHead>
-                  <TableHead className="text-right text-blue-400">Pull</TableHead>
-                  <TableHead className="text-right text-red-400">Push</TableHead>
-                  <TableHead className="text-right text-green-400">Legs</TableHead>
-                  <TableHead className="text-right text-cyan-400">Swim</TableHead>
-                  <TableHead className="text-right text-orange-400">Run</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {monthlySummaries.map(summary => {
-                  const monthNumber = String(summary.monthDate.getMonth() + 1).padStart(2, '0')
-                  const shortYear = String(summary.monthDate.getFullYear()).slice(-2)
-                  const shortMonthLabel = `${shortYear}.${monthNumber}`
-                  return (
-                    <TableRow key={summary.monthDate.toISOString()}>
-                      <TableCell className="font-medium">
-                        {shortMonthLabel}
-                      </TableCell>
-                    <TableCell className="text-right font-mono">{summary.byType.Pull}</TableCell>
-                    <TableCell className="text-right font-mono">{summary.byType.Push}</TableCell>
-                    <TableCell className="text-right font-mono">{summary.byType.Legs}</TableCell>
-                    <TableCell className="text-right font-mono">{summary.byType.Swim}</TableCell>
-                    <TableCell className="text-right font-mono">{summary.byType.Run}</TableCell>
-                    <TableCell className="text-right font-mono">{summary.total}</TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </Card>
-        )}
       </div>
 
       {/* Log Past Workout */}
