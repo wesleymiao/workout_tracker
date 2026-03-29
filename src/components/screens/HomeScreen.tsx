@@ -2,6 +2,7 @@ import { useLocalStorage } from '@/hooks/use-local-storage'
 import { Plus, ClockCounterClockwise, Trash, CaretLeft, CaretRight, Warning, Fire, TrendUp, TrendDown } from '@phosphor-icons/react'
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table'
 import { useState, useMemo } from 'react'
 import { Workout, WorkoutType, isSwimWorkout, isRunWorkout } from '@/lib/types'
 import {
@@ -60,6 +61,26 @@ const formatWorkoutLabel = (workout: Workout): string => {
   }
 
   return workout.type
+}
+
+const countWorkoutsByType = (workoutList: Workout[]) => {
+  const counts: Record<'Pull' | 'Push' | 'Legs' | 'Swim' | 'Run', number> = {
+    'Pull': 0,
+    'Push': 0,
+    'Legs': 0,
+    'Swim': 0,
+    'Run': 0
+  }
+
+  workoutList.forEach(workout => {
+    if (workout.type === 'Run (Gym)' || workout.type === 'Run (Outdoor)') {
+      counts['Run']++
+    } else {
+      counts[workout.type]++
+    }
+  })
+
+  return counts
 }
 
 function DeltaBadge({ current, previous }: { current: number; previous: number }) {
@@ -159,26 +180,8 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
       isInMonth(new Date(w.date), prevYear, prevMonth)
     )
 
-    const countByType = (workoutList: Workout[]) => {
-      const counts: Record<string, number> = {
-        'Pull': 0,
-        'Push': 0,
-        'Legs': 0,
-        'Swim': 0,
-        'Run': 0
-      }
-      workoutList.forEach(w => {
-        if (w.type === 'Run (Gym)' || w.type === 'Run (Outdoor)') {
-          counts['Run']++
-        } else {
-          counts[w.type]++
-        }
-      })
-      return counts
-    }
-
-    const currentCounts = countByType(currentMonthWorkouts)
-    const prevCounts = countByType(prevMonthWorkouts)
+    const currentCounts = countWorkoutsByType(currentMonthWorkouts)
+    const prevCounts = countWorkoutsByType(prevMonthWorkouts)
 
     return {
       total: currentMonthWorkouts.length,
@@ -187,6 +190,30 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
       prevByType: prevCounts
     }
   }, [completedWorkouts, currentMonth])
+
+  const monthlySummaries = useMemo(() => {
+    const months = new Map<string, { monthDate: Date; workouts: Workout[] }>()
+
+    completedWorkouts.forEach(workout => {
+      const workoutDate = new Date(workout.date)
+      const monthDate = new Date(workoutDate.getFullYear(), workoutDate.getMonth(), 1)
+      const key = `${monthDate.getFullYear()}-${monthDate.getMonth()}`
+      const existing = months.get(key)
+      if (existing) {
+        existing.workouts.push(workout)
+      } else {
+        months.set(key, { monthDate, workouts: [workout] })
+      }
+    })
+
+    return Array.from(months.values())
+      .map(({ monthDate, workouts }) => ({
+        monthDate,
+        total: workouts.length,
+        byType: countWorkoutsByType(workouts)
+      }))
+      .sort((a, b) => b.monthDate.getTime() - a.monthDate.getTime())
+  }, [completedWorkouts])
 
   // Get reminder message based on days since last workout
   const getWorkoutReminder = () => {
@@ -569,6 +596,50 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
             })}
           </div>
         </Card>
+      </div>
+
+      {/* Monthly Stats History */}
+      <div>
+        <h2 className="text-xl font-semibold mb-3">Monthly Stats History</h2>
+        {monthlySummaries.length === 0 ? (
+          <Card className="p-6 text-center">
+            <p className="text-muted-foreground">No workout history yet</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Log workouts to see monthly stats here
+            </p>
+          </Card>
+        ) : (
+          <Card className="p-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Month</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead className="text-right text-blue-400">Pull</TableHead>
+                  <TableHead className="text-right text-red-400">Push</TableHead>
+                  <TableHead className="text-right text-green-400">Legs</TableHead>
+                  <TableHead className="text-right text-cyan-400">Swim</TableHead>
+                  <TableHead className="text-right text-orange-400">Run</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {monthlySummaries.map(summary => (
+                  <TableRow key={summary.monthDate.toISOString()}>
+                    <TableCell className="font-medium">
+                      {summary.monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    </TableCell>
+                    <TableCell className="text-right font-mono">{summary.total}</TableCell>
+                    <TableCell className="text-right font-mono">{summary.byType.Pull}</TableCell>
+                    <TableCell className="text-right font-mono">{summary.byType.Push}</TableCell>
+                    <TableCell className="text-right font-mono">{summary.byType.Legs}</TableCell>
+                    <TableCell className="text-right font-mono">{summary.byType.Swim}</TableCell>
+                    <TableCell className="text-right font-mono">{summary.byType.Run}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        )}
       </div>
 
       {/* Recent Workouts */}
