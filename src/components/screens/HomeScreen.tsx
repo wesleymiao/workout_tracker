@@ -614,29 +614,30 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
               <TableHeader>
                 <TableRow>
                   <TableHead>Month</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
                   <TableHead className="text-right text-blue-400">Pull</TableHead>
                   <TableHead className="text-right text-red-400">Push</TableHead>
                   <TableHead className="text-right text-green-400">Legs</TableHead>
                   <TableHead className="text-right text-cyan-400">Swim</TableHead>
                   <TableHead className="text-right text-orange-400">Run</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {monthlySummaries.map(summary => {
                   const monthNumber = String(summary.monthDate.getMonth() + 1).padStart(2, '0')
-                  const shortMonthLabel = `${summary.monthDate.getFullYear()}.${monthNumber}`
+                  const shortYear = String(summary.monthDate.getFullYear()).slice(-2)
+                  const shortMonthLabel = `${shortYear}.${monthNumber}`
                   return (
                     <TableRow key={summary.monthDate.toISOString()}>
                       <TableCell className="font-medium">
                         {shortMonthLabel}
                       </TableCell>
-                    <TableCell className="text-right font-mono">{summary.total}</TableCell>
                     <TableCell className="text-right font-mono">{summary.byType.Pull}</TableCell>
                     <TableCell className="text-right font-mono">{summary.byType.Push}</TableCell>
                     <TableCell className="text-right font-mono">{summary.byType.Legs}</TableCell>
                     <TableCell className="text-right font-mono">{summary.byType.Swim}</TableCell>
                     <TableCell className="text-right font-mono">{summary.byType.Run}</TableCell>
+                    <TableCell className="text-right font-mono">{summary.total}</TableCell>
                     </TableRow>
                   )
                 })}
