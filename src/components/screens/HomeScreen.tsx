@@ -428,41 +428,29 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
           </Card>
         ) : (
           <Card className="p-4">
-            <div className="space-y-3">
+            <div className="grid grid-cols-7 gap-1 text-[11px] font-medium text-muted-foreground">
+              <div className="text-left">Month</div>
+              <div className="text-center text-blue-400">Pull</div>
+              <div className="text-center text-red-400">Push</div>
+              <div className="text-center text-green-400">Legs</div>
+              <div className="text-center text-cyan-400">Swim</div>
+              <div className="text-center text-orange-400">Run</div>
+              <div className="text-center">Total</div>
+            </div>
+            <div className="mt-2 divide-y divide-border/50 text-xs">
               {monthlySummaries.map(summary => {
                 const monthNumber = String(summary.monthDate.getMonth() + 1).padStart(2, '0')
                 const shortYear = String(summary.monthDate.getFullYear()).slice(-2)
                 const shortMonthLabel = `${shortYear}.${monthNumber}`
                 return (
-                  <div key={summary.monthDate.toISOString()} className="rounded-md border border-border/50 p-3">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">{shortMonthLabel}</span>
-                      <span className="text-sm text-muted-foreground">
-                        Total <span className="font-mono text-foreground">{summary.total}</span>
-                      </span>
-                    </div>
-                    <div className="mt-2 grid grid-cols-2 sm:grid-cols-5 gap-2 text-sm">
-                      <div className="flex items-center justify-between sm:flex-col sm:items-center sm:gap-1">
-                        <span className="text-xs font-medium text-blue-400">Pull</span>
-                        <span className="font-mono">{summary.byType.Pull}</span>
-                      </div>
-                      <div className="flex items-center justify-between sm:flex-col sm:items-center sm:gap-1">
-                        <span className="text-xs font-medium text-red-400">Push</span>
-                        <span className="font-mono">{summary.byType.Push}</span>
-                      </div>
-                      <div className="flex items-center justify-between sm:flex-col sm:items-center sm:gap-1">
-                        <span className="text-xs font-medium text-green-400">Legs</span>
-                        <span className="font-mono">{summary.byType.Legs}</span>
-                      </div>
-                      <div className="flex items-center justify-between sm:flex-col sm:items-center sm:gap-1">
-                        <span className="text-xs font-medium text-cyan-400">Swim</span>
-                        <span className="font-mono">{summary.byType.Swim}</span>
-                      </div>
-                      <div className="flex items-center justify-between sm:flex-col sm:items-center sm:gap-1">
-                        <span className="text-xs font-medium text-orange-400">Run</span>
-                        <span className="font-mono">{summary.byType.Run}</span>
-                      </div>
-                    </div>
+                  <div key={summary.monthDate.toISOString()} className="grid grid-cols-7 gap-1 py-2 min-w-0">
+                    <div className="font-medium">{shortMonthLabel}</div>
+                    <div className="text-center font-mono">{summary.byType.Pull}</div>
+                    <div className="text-center font-mono">{summary.byType.Push}</div>
+                    <div className="text-center font-mono">{summary.byType.Legs}</div>
+                    <div className="text-center font-mono">{summary.byType.Swim}</div>
+                    <div className="text-center font-mono">{summary.byType.Run}</div>
+                    <div className="text-center font-mono">{summary.total}</div>
                   </div>
                 )
               })}
