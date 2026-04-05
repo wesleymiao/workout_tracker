@@ -1,5 +1,5 @@
 import { useLocalStorage } from '@/hooks/use-local-storage'
-import { Plus, ClockCounterClockwise, Trash, CaretLeft, CaretRight, Warning, Fire } from '@phosphor-icons/react'
+import { Plus, ClockCounterClockwise, Trash, CaretLeft, CaretRight, Warning, Fire, DownloadSimple } from '@phosphor-icons/react'
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
 import { useState, useMemo } from 'react'
@@ -627,6 +627,41 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
             })
           )}
         </div>
+      </div>
+
+      {/* Footer */}
+      <div className="mt-8 pt-4 border-t border-border space-y-3">
+        <Button
+          variant="outline"
+          className="w-full h-12"
+          size="lg"
+          onClick={() => {
+            const data = {
+              workouts,
+              activeWorkout,
+              exportedAt: new Date().toISOString(),
+            }
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `workout-history-${new Date().toISOString().slice(0, 10)}.json`
+            a.click()
+            URL.revokeObjectURL(url)
+          }}
+        >
+          <DownloadSimple size={20} weight="bold" />
+          Export All Data
+        </Button>
+        <p className="text-xs text-muted-foreground text-center">
+          Last deployed: {new Date(__BUILD_TIME__).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          })}
+        </p>
       </div>
 
       {/* Delete Completed Workout Confirmation */}
