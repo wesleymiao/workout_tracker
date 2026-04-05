@@ -84,9 +84,8 @@ const countWorkoutsByType = (workoutList: Workout[]) => {
 
 const getRunDistanceKm = (workoutList: Workout[]) => {
   return workoutList.reduce((total, workout) => {
-    if (!isRunWorkout(workout.type)) return total
     const runDistance = workout.exercises
-      .filter(exercise => exercise.type === 'run')
+      .filter(exercise => exercise.type === 'run' || exercise.type === 'cardio')
       .reduce((sum, exercise) => {
         const distance = 'actualDistance' in exercise && exercise.actualDistance
           ? exercise.actualDistance
