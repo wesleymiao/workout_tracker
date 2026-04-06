@@ -343,6 +343,16 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
 
   return (
     <div className="p-4 pt-12 space-y-6 pb-24">
+      <p className="text-xs text-muted-foreground text-center">
+        Last deployed: {new Date(__BUILD_TIME__).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        })}
+      </p>
+
       {/* Workout Reminder Banner */}
       {workoutReminder.show && (
         <Card className={`p-4 border-l-4 ${
@@ -653,15 +663,6 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
           <DownloadSimple size={20} weight="bold" />
           Export All Data
         </Button>
-        <p className="text-xs text-muted-foreground text-center">
-          Last deployed: {new Date(__BUILD_TIME__).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
-        </p>
       </div>
 
       {/* Delete Completed Workout Confirmation */}
