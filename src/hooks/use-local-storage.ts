@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { toast } from 'sonner'
 
 const API_BASE = '/api/storage'
 
@@ -95,10 +96,12 @@ export function useLocalStorage<T>(key: string, defaultValue: T): [T, (value: T 
         body: JSON.stringify({ value: valueToStore })
       })
         .then(() => {
+          toast.success('Saved remotely', { duration: 1500 })
           // Notify other hook instances
           dispatchStorageUpdate(key)
         })
         .catch(error => {
+          toast.error('Failed to save remotely')
           console.warn(`Error saving to server for key "${key}":`, error)
         })
       
@@ -119,9 +122,11 @@ export function useLocalStorage<T>(key: string, defaultValue: T): [T, (value: T 
       method: 'DELETE'
     })
       .then(() => {
+        toast.success('Saved remotely', { duration: 1500 })
         dispatchStorageUpdate(key)
       })
       .catch(error => {
+        toast.error('Failed to save remotely')
         console.warn(`Error removing from server for key "${key}":`, error)
       })
   }, [key])
