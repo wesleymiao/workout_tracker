@@ -101,7 +101,7 @@ export function useLocalStorage<T>(key: string, defaultValue: T): [T, (value: T 
           dispatchStorageUpdate(key)
         })
         .catch(error => {
-          toast.error('Failed to save remotely')
+          toast.error('Failed to save remotely', { duration: 5000 })
           console.warn(`Error saving to server for key "${key}":`, error)
         })
       
@@ -126,7 +126,7 @@ export function useLocalStorage<T>(key: string, defaultValue: T): [T, (value: T 
         dispatchStorageUpdate(key)
       })
       .catch(error => {
-        toast.error('Failed to save remotely')
+        toast.error('Failed to save remotely', { duration: 5000 })
         console.warn(`Error removing from server for key "${key}":`, error)
       })
   }, [key])
