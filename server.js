@@ -12,6 +12,18 @@ const port = process.env.PORT || 8080;
 // JSON body parser - increase limit for health data uploads
 app.use(express.json({ limit: '10mb' }));
 
+// Request logging middleware
+app.use((req, res, next) => {
+  const start = Date.now();
+  const { method, url } = req;
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] ${method} ${url} ${res.statusCode} ${duration}ms`);
+  });
+  next();
+});
+
 // --- Storage abstraction ---
 
 // Azure Blob Storage backend
