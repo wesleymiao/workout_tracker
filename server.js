@@ -9,8 +9,8 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = process.env.PORT || 8080;
 
-// JSON body parser
-app.use(express.json());
+// JSON body parser - increase limit for health data uploads
+app.use(express.json({ limit: '10mb' }));
 
 // --- Storage abstraction ---
 
@@ -201,6 +201,75 @@ app.delete('/api/storage/:key', async (req, res) => {
     res.json({ success: true });
   } catch (e) {
     console.error('DELETE error:', e);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// --- Health data API ---
+
+// POST /api/health - Receive health data from iOS Shortcuts
+app.post('/api/health', async (req, res) => {
+  try {
+    const { metrics } = req.body;
+    if (!metrics || !Array.isArray(metrics)) {
+      return res.status(400).json({ error: 'Invalid payload: expected { metrics: [...] }' });
+    }
+
+    const data = await readData();
+    if (!data['health-data']) {
+      data['health-data'] = [];
+    }
+
+    // Each metric: { type: "steps"|"heartRate"|"activeEnergy"|..., value: number, unit: string, date: ISO string }
+    // Deduplicate by type+date
+    const existing = data['health-data'];
+    const existingKeys = new Set(existing.map(m => `${m.type}:${m.date}`));
+
+    let added = 0;
+    for (const metric of metrics) {
+      const key = `${metric.type}:${metric.date}`;
+      if (!existingKeys.has(key)) {
+        existing.push(metric);
+        existingKeys.add(key);
+        added++;
+      }
+    }
+
+    // Keep only last 90 days of data
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 90);
+    data['health-data'] = existing.filter(m => new Date(m.date) >= cutoff);
+
+    await writeData(data);
+    res.json({ success: true, added, total: data['health-data'].length });
+  } catch (e) {
+    console.error('POST /api/health error:', e);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/health - Get health data, optionally filtered by type and date range
+app.get('/api/health', async (req, res) => {
+  try {
+    const data = await readData();
+    let healthData = data['health-data'] || [];
+
+    const { type, days } = req.query;
+    if (type) {
+      healthData = healthData.filter(m => m.type === type);
+    }
+    if (days) {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - parseInt(days));
+      healthData = healthData.filter(m => new Date(m.date) >= cutoff);
+    }
+
+    // Sort by date descending
+    healthData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    res.json({ metrics: healthData });
+  } catch (e) {
+    console.error('GET /api/health error:', e);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

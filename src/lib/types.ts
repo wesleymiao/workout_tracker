@@ -65,6 +65,25 @@ export interface UserSettings {
   checklistItems: string[]
 }
 
+// Health data types
+export interface HealthMetric {
+  type: string
+  value: number
+  unit: string
+  date: string
+}
+
+export type HealthMetricType = 'steps' | 'heartRate' | 'restingHeartRate' | 'activeEnergy' | 'sleepHours' | 'walkingDistance'
+
+export const HEALTH_METRIC_LABELS: Record<string, { label: string; icon: string; color: string; unit: string }> = {
+  steps: { label: '步数', icon: '🚶', color: 'text-blue-400', unit: '步' },
+  heartRate: { label: '心率', icon: '❤️', color: 'text-red-400', unit: 'bpm' },
+  restingHeartRate: { label: '静息心率', icon: '💗', color: 'text-pink-400', unit: 'bpm' },
+  activeEnergy: { label: '活动能量', icon: '🔥', color: 'text-orange-400', unit: 'kcal' },
+  sleepHours: { label: '睡眠', icon: '😴', color: 'text-indigo-400', unit: '小时' },
+  walkingDistance: { label: '步行距离', icon: '📍', color: 'text-green-400', unit: 'km' },
+}
+
 // Helper function to check if workout type is strength-based (Pull/Push/Legs)
 export function isStrengthWorkout(type: WorkoutType): boolean {
   return type === 'Pull' || type === 'Push' || type === 'Legs'
