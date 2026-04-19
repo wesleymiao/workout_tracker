@@ -252,7 +252,16 @@ app.post('/api/health', async (req, res) => {
     // Keep only last 90 days of data
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 90);
-    data['health-data'] = existing.filter(m => new Date(m.date) >= cutoff);
+    const before = existing.length;
+    data['health-data'] = existing.filter(m => {
+      const d = new Date(m.date);
+      const valid = !isNaN(d.getTime()) && d >= cutoff;
+      if (!valid) {
+        console.log(`[Health POST] Filtered out metric: type=${m.type}, date="${m.date}", parsed=${d}`);
+      }
+      return valid;
+    });
+    console.log(`[Health POST] Kept ${data['health-data'].length}/${before} after 90-day filter`);
 
     await writeData(data);
     res.json({ success: true, added, total: data['health-data'].length });
