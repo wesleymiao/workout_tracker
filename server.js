@@ -229,6 +229,32 @@ app.post('/api/health', async (req, res) => {
     }
     console.log(`[Health POST] Received ${metrics.length} metrics`);
 
+    // Parse date strings - supports ISO format and Chinese format like "2026年4月19日 15:05"
+    function parseDate(dateStr) {
+      if (!dateStr) return null;
+      // Try standard ISO parse first
+      let d = new Date(dateStr);
+      if (!isNaN(d.getTime())) return d;
+      // Chinese date format: "2026年4月19日 15:05" or "2026年4月19日"
+      const m = dateStr.match(/(\d{4})年(\d{1,2})月(\d{1,2})日\s*(\d{1,2}):(\d{1,2})?/);
+      if (m) {
+        return new Date(+m[1], +m[2] - 1, +m[3], +m[4] || 0, +m[5] || 0);
+      }
+      const m2 = dateStr.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/);
+      if (m2) {
+        return new Date(+m2[1], +m2[2] - 1, +m2[3]);
+      }
+      return null;
+    }
+
+    // Normalize dates to ISO format
+    for (const metric of metrics) {
+      const parsed = parseDate(metric.date);
+      if (parsed) {
+        metric.date = parsed.toISOString();
+      }
+    }
+
     const data = await readData();
     if (!data['health-data']) {
       data['health-data'] = [];
