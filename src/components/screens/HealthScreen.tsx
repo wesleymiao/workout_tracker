@@ -97,6 +97,11 @@ export default function HealthScreen() {
         ))}
       </div>
 
+      {/* Setup button - always visible */}
+      <Button variant="outline" size="sm" onClick={() => setShowSetup(true)}>
+        ⚙️ 同步设置
+      </Button>
+
       {availableTypes.length === 0 ? (
         <Card className="p-8 text-center">
           <p className="text-5xl mb-4">📱</p>
