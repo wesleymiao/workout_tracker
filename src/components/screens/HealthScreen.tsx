@@ -92,16 +92,89 @@ export default function HealthScreen() {
       </div>
 
       {availableTypes.length === 0 ? (
-        <Card className="p-6 text-center">
-          <p className="text-4xl mb-3">📱</p>
-          <p className="text-muted-foreground font-medium">暂无健康数据</p>
-          <p className="text-sm text-muted-foreground mt-2">
-            使用 iPhone 快捷指令同步 Apple Health 数据
-          </p>
-          <p className="text-xs text-muted-foreground mt-4">
-            API 地址：<code className="bg-secondary px-1 py-0.5 rounded">POST /api/health</code>
-          </p>
-        </Card>
+        <div className="space-y-4">
+          <Card className="p-6 text-center">
+            <p className="text-4xl mb-3">📱</p>
+            <p className="text-foreground font-semibold text-lg">暂无健康数据</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              按照以下步骤，用 iPhone 快捷指令自动同步 Apple Health 数据
+            </p>
+          </Card>
+
+          <Card className="p-5">
+            <h3 className="font-semibold mb-3">📋 创建快捷指令</h3>
+            <ol className="text-sm text-muted-foreground space-y-3 list-decimal list-inside">
+              <li>打开 iPhone「快捷指令」App → 点击右上角 <span className="text-foreground font-medium">+</span> 新建</li>
+              <li>
+                添加「查找健康样本」操作（重复 3 次）：
+                <ul className="ml-5 mt-1 space-y-1 list-disc">
+                  <li>类型：<span className="text-foreground">步数</span>，开始日期：今天开始</li>
+                  <li>类型：<span className="text-foreground">心率</span>，开始日期：今天开始</li>
+                  <li>类型：<span className="text-foreground">活动能量</span>，开始日期：今天开始</li>
+                </ul>
+              </li>
+              <li>
+                添加「获取 URL 内容」操作：
+                <ul className="ml-5 mt-1 space-y-1 list-disc">
+                  <li>URL：<code className="bg-secondary px-1 py-0.5 rounded text-xs break-all">{window.location.origin}/api/health</code></li>
+                  <li>方法：<span className="text-foreground">POST</span></li>
+                  <li>请求体：<span className="text-foreground">JSON</span></li>
+                </ul>
+              </li>
+              <li>
+                JSON 格式：
+                <pre className="bg-secondary/50 rounded-md p-3 mt-1 text-xs overflow-x-auto whitespace-pre">{`{
+  "metrics": [
+    {
+      "type": "steps",
+      "value": 步数结果,
+      "unit": "count",
+      "date": 当前日期
+    },
+    {
+      "type": "heartRate",
+      "value": 心率结果,
+      "unit": "bpm",
+      "date": 当前日期
+    },
+    {
+      "type": "activeEnergy",
+      "value": 活动能量结果,
+      "unit": "kcal",
+      "date": 当前日期
+    }
+  ]
+}`}</pre>
+              </li>
+            </ol>
+          </Card>
+
+          <Card className="p-5">
+            <h3 className="font-semibold mb-3">⏰ 设置每日自动化</h3>
+            <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
+              <li>打开「快捷指令」→「自动化」</li>
+              <li>点击 <span className="text-foreground font-medium">+</span> →「创建个人自动化」</li>
+              <li>选择「特定时间」→ 设为每天晚上 <span className="text-foreground">22:00</span></li>
+              <li>选择刚才创建的快捷指令</li>
+              <li>关闭「运行前询问」开关</li>
+            </ol>
+            <p className="text-xs text-muted-foreground mt-3">
+              💡 设置完成后，每天会自动同步当天的健康数据到这里
+            </p>
+          </Card>
+
+          <Card className="p-5">
+            <h3 className="font-semibold mb-3">📊 支持的数据类型</h3>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className="flex items-center gap-2"><span>🚶</span><span className="text-muted-foreground">steps — 步数</span></div>
+              <div className="flex items-center gap-2"><span>❤️</span><span className="text-muted-foreground">heartRate — 心率</span></div>
+              <div className="flex items-center gap-2"><span>💗</span><span className="text-muted-foreground">restingHeartRate — 静息心率</span></div>
+              <div className="flex items-center gap-2"><span>🔥</span><span className="text-muted-foreground">activeEnergy — 活动能量</span></div>
+              <div className="flex items-center gap-2"><span>😴</span><span className="text-muted-foreground">sleepHours — 睡眠时长</span></div>
+              <div className="flex items-center gap-2"><span>📍</span><span className="text-muted-foreground">walkingDistance — 步行距离</span></div>
+            </div>
+          </Card>
+        </div>
       ) : (
         <>
           {/* Overview cards */}
