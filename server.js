@@ -222,10 +222,12 @@ app.delete('/api/storage/:key', async (req, res) => {
 // POST /api/health - Receive health data from iOS Shortcuts
 app.post('/api/health', async (req, res) => {
   try {
+    console.log('[Health POST] Body:', JSON.stringify(req.body).slice(0, 500));
     const { metrics } = req.body;
     if (!metrics || !Array.isArray(metrics)) {
       return res.status(400).json({ error: 'Invalid payload: expected { metrics: [...] }' });
     }
+    console.log(`[Health POST] Received ${metrics.length} metrics`);
 
     const data = await readData();
     if (!data['health-data']) {
