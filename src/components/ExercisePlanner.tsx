@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Workout, WorkoutType, Exercise, EquipmentExercise, CardioExercise, SwimExercise, RunExercise, isStrengthWorkout, isRunWorkout, isSwimWorkout } from '@/lib/types'
+import { Workout, WorkoutType, Exercise, EquipmentExercise, CardioExercise, SwimExercise, RunExercise, ExerciseDifficulty, isStrengthWorkout, isRunWorkout, isSwimWorkout } from '@/lib/types'
 import { Card } from './ui/card'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -333,6 +333,16 @@ export default function ExercisePlanner({ workout, onUpdateWorkout, onStartWorko
                               : `${(exercise as CardioExercise).targetDistance}km`
                             }
                           </p>
+                          {isEquipment && (exercise as EquipmentExercise).difficulty && (
+                            <span className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full ${
+                              (exercise as EquipmentExercise).difficulty === 'easy' ? 'bg-green-500/20 text-green-400' :
+                              (exercise as EquipmentExercise).difficulty === 'moderate' ? 'bg-yellow-500/20 text-yellow-400' :
+                              'bg-red-500/20 text-red-400'
+                            }`}>
+                              上次: {(exercise as EquipmentExercise).difficulty === 'easy' ? '😊 轻松' :
+                               (exercise as EquipmentExercise).difficulty === 'moderate' ? '💪 适合' : '🥵 吃力'}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>

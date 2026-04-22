@@ -1,5 +1,7 @@
 export type WorkoutType = 'Pull' | 'Push' | 'Legs' | 'Swim' | 'Run (Gym)' | 'Run (Outdoor)'
 
+export type ExerciseDifficulty = 'easy' | 'moderate' | 'hard'
+
 export type ExerciseType = 'equipment' | 'cardio'
 
 export interface EquipmentExercise {
@@ -13,6 +15,7 @@ export interface EquipmentExercise {
   actualWeight?: number
   actualReps?: number[]
   completed: boolean
+  difficulty?: ExerciseDifficulty
 }
 
 export interface CardioExercise {

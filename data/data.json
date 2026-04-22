@@ -1,5 +1,12 @@
 {
-  "active-workout": null,
+  "active-workout": {
+    "id": "1776550589109",
+    "type": "Push",
+    "date": "2026-04-18T22:16:29.109Z",
+    "startTime": "2026-04-18T22:16:29.109Z",
+    "exercises": [],
+    "completed": false
+  },
   "workouts": [
     {
       "id": "1768355229638",
@@ -86,6 +93,33 @@
       ],
       "completed": true,
       "endTime": "2026-01-14T01:50:38.125Z"
+    }
+  ],
+  "test-key": "hello",
+  "health-data": [
+    {
+      "type": "steps",
+      "value": 8432,
+      "unit": "count",
+      "date": "2026-04-19T00:00:00+08:00"
+    },
+    {
+      "type": "heartRate",
+      "value": 72,
+      "unit": "bpm",
+      "date": "2026-04-19T08:00:00+08:00"
+    },
+    {
+      "type": "activeEnergy",
+      "value": 320,
+      "unit": "kcal",
+      "date": "2026-04-19T00:00:00+08:00"
+    },
+    {
+      "type": "steps",
+      "value": 6200,
+      "unit": "count",
+      "date": "2026-04-18T00:00:00+08:00"
     }
   ]
 }

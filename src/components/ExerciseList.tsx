@@ -1,6 +1,6 @@
 import { useLocalStorage } from '@/hooks/use-local-storage'
 import { useState, useEffect } from 'react'
-import { Workout, Exercise, EquipmentExercise, CardioExercise, SwimExercise, RunExercise, isStrengthWorkout, isSwimWorkout, isRunWorkout } from '@/lib/types'
+import { Workout, Exercise, EquipmentExercise, CardioExercise, SwimExercise, RunExercise, ExerciseDifficulty, isStrengthWorkout, isSwimWorkout, isRunWorkout } from '@/lib/types'
 import { Card } from './ui/card'
 import { Button } from './ui/button'
 import { Plus, CheckCircle, PencilSimple, Warning, CaretUp, CaretDown } from '@phosphor-icons/react'
@@ -21,6 +21,7 @@ export default function ExerciseList({ workout, onUpdateWorkout }: ExerciseListP
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [exerciseType, setExerciseType] = useState<'equipment' | 'cardio'>('equipment')
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null)
+  const [difficultyExerciseId, setDifficultyExerciseId] = useState<string | null>(null)
 
   const handleAddExercise = () => {
     setEditingExercise(null)
@@ -67,7 +68,22 @@ export default function ExerciseList({ workout, onUpdateWorkout }: ExerciseListP
       toast.success('Target achieved! 🎯', {
         duration: 2000,
       })
+      // Show difficulty dialog for equipment exercises
+      if (exercise?.type === 'equipment') {
+        setDifficultyExerciseId(exerciseId)
+      }
     }
+  }
+
+  const handleSetDifficulty = (difficulty: ExerciseDifficulty) => {
+    if (!difficultyExerciseId) return
+    onUpdateWorkout({
+      ...workout,
+      exercises: workout.exercises.map(e =>
+        e.id === difficultyExerciseId ? { ...e, difficulty } : e
+      )
+    })
+    setDifficultyExerciseId(null)
   }
 
   const handleMoveExercise = (exerciseId: string, direction: 'up' | 'down') => {
@@ -184,6 +200,10 @@ export default function ExerciseList({ workout, onUpdateWorkout }: ExerciseListP
                       : e
                   )
                 })
+                // Show difficulty dialog when all sets completed
+                if (isNowComplete && !exercise.completed) {
+                  setDifficultyExerciseId(exercise.id)
+                }
               } : undefined}
             />
           ))}
@@ -201,6 +221,14 @@ export default function ExerciseList({ workout, onUpdateWorkout }: ExerciseListP
         exercise={editingExercise}
         exerciseType={exerciseType}
         onSave={handleSaveExercise}
+      />
+
+      {/* Difficulty prompt dialog */}
+      <DifficultyDialog
+        open={difficultyExerciseId !== null}
+        exerciseName={workout.exercises.find(e => e.id === difficultyExerciseId)?.name ?? ''}
+        onSelect={handleSetDifficulty}
+        onClose={() => setDifficultyExerciseId(null)}
       />
     </div>
   )
@@ -335,6 +363,16 @@ function ExerciseCard({ exercise, index, totalCount, onToggleComplete, onEdit, o
                   {exercise.completedSets >= exercise.targetSets && ' ✓'}
                 </p>
               )}
+              {exercise.type === 'equipment' && (exercise as EquipmentExercise).difficulty && (
+                <span className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full ${
+                  (exercise as EquipmentExercise).difficulty === 'easy' ? 'bg-green-500/20 text-green-400' :
+                  (exercise as EquipmentExercise).difficulty === 'moderate' ? 'bg-yellow-500/20 text-yellow-400' :
+                  'bg-red-500/20 text-red-400'
+                }`}>
+                  {(exercise as EquipmentExercise).difficulty === 'easy' ? '😊 轻松' :
+                   (exercise as EquipmentExercise).difficulty === 'moderate' ? '💪 适合' : '🥵 吃力'}
+                </span>
+              )}
             </div>
           ) : exercise.type === 'cardio' ? (
             <div className="mt-2 space-y-1">
@@ -459,6 +497,50 @@ function RunExerciseCard({ exercise, onToggleComplete, onUpdateDistance }: RunEx
         </div>
       </div>
     </Card>
+  )
+}
+
+// Difficulty prompt dialog
+interface DifficultyDialogProps {
+  open: boolean
+  exerciseName: string
+  onSelect: (difficulty: ExerciseDifficulty) => void
+  onClose: () => void
+}
+
+function DifficultyDialog({ open, exerciseName, onSelect, onClose }: DifficultyDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="text-xl text-center">完成难度</DialogTitle>
+        </DialogHeader>
+        <p className="text-center text-sm text-muted-foreground mb-2">{exerciseName}</p>
+        <div className="flex flex-col gap-3 py-2">
+          <Button
+            variant="outline"
+            className="h-14 text-lg border-green-500/50 hover:bg-green-500/10 hover:border-green-500"
+            onClick={() => onSelect('easy')}
+          >
+            😊 轻松
+          </Button>
+          <Button
+            variant="outline"
+            className="h-14 text-lg border-yellow-500/50 hover:bg-yellow-500/10 hover:border-yellow-500"
+            onClick={() => onSelect('moderate')}
+          >
+            💪 适合
+          </Button>
+          <Button
+            variant="outline"
+            className="h-14 text-lg border-red-500/50 hover:bg-red-500/10 hover:border-red-500"
+            onClick={() => onSelect('hard')}
+          >
+            🥵 吃力
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 
