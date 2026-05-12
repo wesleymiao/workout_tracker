@@ -73,6 +73,7 @@ export default function ActiveWorkoutScreen({ isPastWorkoutMode = false, onExitP
   })
 
   const [pastDuration, setPastDuration] = useState(60) // default 60 minutes
+  const [pastDistance, setPastDistance] = useState(5) // default 5 km for run workouts
 
   // Always refresh checklist items from localStorage when starting a new workout
   useEffect(() => {
@@ -135,10 +136,21 @@ export default function ActiveWorkoutScreen({ isPastWorkoutMode = false, onExitP
 
     // For past workouts, set endTime to startTime + duration
     let endTime: string | undefined = undefined
-    if (isPastWorkoutMode && selectedDate && pastDuration && pastDuration > 0) {
+    if (isPastWorkoutMode && selectedDate && !isRunWorkout(selectedType) && pastDuration && pastDuration > 0) {
       const start = new Date(workoutDate)
       const end = new Date(start.getTime() + pastDuration * 60000)
       endTime = end.toISOString()
+    }
+
+    // For run workouts in past mode, pre-set the distance from pastDistance
+    if (isPastWorkoutMode && isRunWorkout(selectedType)) {
+      const runExIdx = exercisesWithNewIds.findIndex(e => e.type === 'run')
+      if (runExIdx >= 0) {
+        exercisesWithNewIds[runExIdx] = {
+          ...exercisesWithNewIds[runExIdx],
+          targetDistance: pastDistance,
+        } as Exercise
+      }
     }
 
     const newWorkout: Workout = {
@@ -158,17 +170,27 @@ export default function ActiveWorkoutScreen({ isPastWorkoutMode = false, onExitP
     if (!selectedType) return
 
     // Use selected date for past workouts, otherwise use current date
-    const workoutDate = isPastWorkoutMode && selectedDate 
-      ? selectedDate.toISOString() 
+    const workoutDate = isPastWorkoutMode && selectedDate
+      ? selectedDate.toISOString()
       : new Date().toISOString()
 
     // For past workouts, set endTime to startTime + duration
     let endTime: string | undefined = undefined
-    if (isPastWorkoutMode && selectedDate && pastDuration && pastDuration > 0) {
+    if (isPastWorkoutMode && selectedDate && !isRunWorkout(selectedType) && pastDuration && pastDuration > 0) {
       const start = new Date(workoutDate)
       const end = new Date(start.getTime() + pastDuration * 60000)
       endTime = end.toISOString()
     }
+
+    // For run workouts, create a run exercise with the distance
+    const exercises: Exercise[] = isPastWorkoutMode && isRunWorkout(selectedType)
+      ? [{
+          id: generateId(),
+          type: 'run' as const,
+          targetDistance: pastDistance,
+          completed: false,
+        }]
+      : []
 
     const newWorkout: Workout = {
       id: Date.now().toString(),
@@ -176,7 +198,7 @@ export default function ActiveWorkoutScreen({ isPastWorkoutMode = false, onExitP
       date: workoutDate,
       startTime: workoutDate,
       endTime: endTime,
-      exercises: [],
+      exercises,
       completed: false
     }
     setActiveWorkout(newWorkout)
@@ -325,23 +347,39 @@ export default function ActiveWorkoutScreen({ isPastWorkoutMode = false, onExitP
             min={oneYearAgo.toISOString().split('T')[0]}
             className="h-14 text-lg mb-4"
           />
-          <div className="mt-4">
-            <label className="block text-base font-medium mb-1" htmlFor="duration-minutes">Duration (minutes)</label>
-            <Input
-              id="duration-minutes"
-              type="number"
-              min={1}
-              max={600}
-              value={pastDuration}
-              onChange={e => setPastDuration(Number(e.target.value))}
-              className="h-12 text-lg"
-            />
-          </div>
+          {selectedType && isRunWorkout(selectedType) ? (
+            <div className="mt-4">
+              <label className="block text-base font-medium mb-1" htmlFor="distance-km">Distance (km)</label>
+              <Input
+                id="distance-km"
+                type="number"
+                min={0.1}
+                max={100}
+                step={0.1}
+                value={pastDistance}
+                onChange={e => setPastDistance(Number(e.target.value))}
+                className="h-12 text-lg"
+              />
+            </div>
+          ) : (
+            <div className="mt-4">
+              <label className="block text-base font-medium mb-1" htmlFor="duration-minutes">Duration (minutes)</label>
+              <Input
+                id="duration-minutes"
+                type="number"
+                min={1}
+                max={600}
+                value={pastDuration}
+                onChange={e => setPastDuration(Number(e.target.value))}
+                className="h-12 text-lg"
+              />
+            </div>
+          )}
         </Card>
 
         <Button
           onClick={handleDateSelected}
-          disabled={!selectedDate || !pastDuration || pastDuration < 1}
+          disabled={!selectedDate || (selectedType && isRunWorkout(selectedType) ? !pastDistance || pastDistance < 0.1 : !pastDuration || pastDuration < 1)}
           className="w-full h-14 text-lg font-semibold"
           size="lg"
         >
