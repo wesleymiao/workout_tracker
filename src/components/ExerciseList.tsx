@@ -75,12 +75,12 @@ export default function ExerciseList({ workout, onUpdateWorkout }: ExerciseListP
     }
   }
 
-  const handleSetDifficulty = (difficulty: ExerciseDifficulty) => {
+  const handleSetDifficulty = (difficulty: ExerciseDifficulty, reps: number) => {
     if (!difficultyExerciseId) return
     onUpdateWorkout({
       ...workout,
       exercises: workout.exercises.map(e =>
-        e.id === difficultyExerciseId ? { ...e, difficulty } : e
+        e.id === difficultyExerciseId ? { ...e, difficulty, difficultyReps: reps } : e
       )
     })
     setDifficultyExerciseId(null)
@@ -371,6 +371,9 @@ function ExerciseCard({ exercise, index, totalCount, onToggleComplete, onEdit, o
                 }`}>
                   {(exercise as EquipmentExercise).difficulty === 'easy' ? '😊 轻松' :
                    (exercise as EquipmentExercise).difficulty === 'moderate' ? '💪 适合' : '🥵 吃力'}
+                  {(exercise as EquipmentExercise).difficultyReps && (
+                    <span className="ml-1 opacity-75">({(exercise as EquipmentExercise).difficultyReps}次)</span>
+                  )}
                 </span>
               )}
             </div>
@@ -500,43 +503,84 @@ function RunExerciseCard({ exercise, onToggleComplete, onUpdateDistance }: RunEx
   )
 }
 
-// Difficulty prompt dialog
+// Difficulty prompt dialog - collects completed reps and auto-maps difficulty
 interface DifficultyDialogProps {
   open: boolean
   exerciseName: string
-  onSelect: (difficulty: ExerciseDifficulty) => void
+  onSelect: (difficulty: ExerciseDifficulty, reps: number) => void
   onClose: () => void
 }
 
 function DifficultyDialog({ open, exerciseName, onSelect, onClose }: DifficultyDialogProps) {
+  const [reps, setReps] = useState('')
+
+  // Reset when dialog opens
+  useEffect(() => {
+    if (open) setReps('')
+  }, [open])
+
+  const handleSubmit = () => {
+    const repsNum = parseInt(reps)
+    if (isNaN(repsNum) || repsNum <= 0) {
+      toast.error('请输入有效次数')
+      return
+    }
+
+    let difficulty: ExerciseDifficulty
+    if (repsNum < 13) {
+      difficulty = 'hard'
+    } else if (repsNum <= 15) {
+      difficulty = 'moderate'
+    } else {
+      difficulty = 'easy'
+    }
+
+    onSelect(difficulty, repsNum)
+  }
+
+  const getDifficultyPreview = (repsNum: number): { label: string; emoji: string; color: string } => {
+    if (repsNum < 13) return { label: '吃力', emoji: '🥵', color: 'text-red-400' }
+    if (repsNum <= 15) return { label: '适合', emoji: '💪', color: 'text-yellow-400' }
+    return { label: '轻松', emoji: '😊', color: 'text-green-400' }
+  }
+
+  const repsNum = parseInt(reps)
+  const preview = !isNaN(repsNum) && repsNum > 0 ? getDifficultyPreview(repsNum) : null
+
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle className="text-xl text-center">完成难度</DialogTitle>
+          <DialogTitle className="text-xl text-center">完成次数</DialogTitle>
         </DialogHeader>
         <p className="text-center text-sm text-muted-foreground mb-2">{exerciseName}</p>
-        <div className="flex flex-col gap-3 py-2">
+        <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label htmlFor="difficulty-reps" className="text-center block">该重量完成了多少次？</Label>
+            <Input
+              id="difficulty-reps"
+              type="number"
+              placeholder="输入次数"
+              value={reps}
+              onChange={(e) => setReps(e.target.value)}
+              className="font-mono text-lg h-14 text-center"
+              autoFocus
+            />
+          </div>
+          {preview && (
+            <div className={`text-center text-sm ${preview.color}`}>
+              {preview.emoji} {preview.label}
+              <span className="text-muted-foreground ml-2 text-xs">
+                ({repsNum < 13 ? '<13次' : repsNum <= 15 ? '13-15次' : '>15次'})
+              </span>
+            </div>
+          )}
           <Button
-            variant="outline"
-            className="h-14 text-lg border-green-500/50 hover:bg-green-500/10 hover:border-green-500"
-            onClick={() => onSelect('easy')}
+            className="w-full h-12"
+            onClick={handleSubmit}
+            disabled={!reps || isNaN(parseInt(reps)) || parseInt(reps) <= 0}
           >
-            😊 轻松
-          </Button>
-          <Button
-            variant="outline"
-            className="h-14 text-lg border-yellow-500/50 hover:bg-yellow-500/10 hover:border-yellow-500"
-            onClick={() => onSelect('moderate')}
-          >
-            💪 适合
-          </Button>
-          <Button
-            variant="outline"
-            className="h-14 text-lg border-red-500/50 hover:bg-red-500/10 hover:border-red-500"
-            onClick={() => onSelect('hard')}
-          >
-            🥵 吃力
+            确认
           </Button>
         </div>
       </DialogContent>

@@ -16,6 +16,7 @@ export interface EquipmentExercise {
   actualReps?: number[]
   completed: boolean
   difficulty?: ExerciseDifficulty
+  difficultyReps?: number
 }
 
 export interface CardioExercise {

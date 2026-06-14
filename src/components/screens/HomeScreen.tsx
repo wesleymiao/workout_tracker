@@ -3,7 +3,7 @@ import { Plus, ClockCounterClockwise, Trash, CaretLeft, CaretRight, Warning, Fir
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
 import { useState, useMemo } from 'react'
-import { Workout, WorkoutType, isSwimWorkout, isRunWorkout } from '@/lib/types'
+import { Workout, WorkoutType, isSwimWorkout, isRunWorkout, isStrengthWorkout } from '@/lib/types'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -170,12 +170,18 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
     })
 
     return Array.from(months.values())
-      .map(({ monthDate, workouts }) => ({
-        monthDate,
-        total: workouts.length,
-        byType: countWorkoutsByType(workouts),
-        runDistanceKm: getRunDistanceKm(workouts)
-      }))
+      .map(({ monthDate, workouts }) => {
+        const anaerobic = workouts.filter(w => isStrengthWorkout(w.type)).length
+        const aerobic = workouts.filter(w => !isStrengthWorkout(w.type)).length
+        return {
+          monthDate,
+          total: workouts.length,
+          byType: countWorkoutsByType(workouts),
+          runDistanceKm: getRunDistanceKm(workouts),
+          anaerobic,
+          aerobic,
+        }
+      })
       .sort((a, b) => b.monthDate.getTime() - a.monthDate.getTime())
   }, [completedWorkouts])
 
@@ -464,7 +470,7 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
               <div className="text-center text-green-400">Legs</div>
               <div className="text-center text-cyan-400">Swim</div>
               <div className="text-center text-orange-400">Run</div>
-              <div className="text-center">Total</div>
+              <div className="text-center text-[10px]">💪vs🏃</div>
             </div>
             <div className="mt-2 divide-y divide-border/50 text-xs">
               {monthlySummaries.map(summary => {
@@ -481,7 +487,18 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
                     <div className="text-center font-mono">
                       {summary.byType.Run} ({formatRunDistanceKm(summary.runDistanceKm)}km)
                     </div>
-                    <div className="text-center font-mono">{summary.total}</div>
+                    <div className="text-center font-mono">
+                      <span className={summary.anaerobic === 0 && summary.aerobic > 0 ? 'text-red-400' : summary.anaerobic > summary.aerobic * 2 ? 'text-yellow-400' : ''}>
+                        {summary.anaerobic}
+                      </span>
+                      <span className="text-muted-foreground">:</span>
+                      <span className={summary.aerobic === 0 && summary.anaerobic > 0 ? 'text-red-400' : summary.aerobic > summary.anaerobic * 2 ? 'text-yellow-400' : ''}>
+                        {summary.aerobic}
+                      </span>
+                      {(summary.anaerobic === 0 || summary.aerobic === 0) && summary.total > 0 && (
+                        <span className="text-red-400 text-[9px] block">⚠️</span>
+                      )}
+                    </div>
                   </div>
                 )
               })}
