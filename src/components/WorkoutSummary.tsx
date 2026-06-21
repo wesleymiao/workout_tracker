@@ -109,7 +109,7 @@ export default function WorkoutSummary({ workout, onClose }: WorkoutSummaryProps
                         <h3 className="font-medium">{exercise.name}</h3>
                         {exercise.type === 'equipment' && (
                           <p className="text-sm text-muted-foreground font-mono">
-                            {exercise.weight}kg × {exercise.targetReps} × {exercise.completedSets}
+                            {exercise.weight}kg × {exercise.completedSets} sets
                           </p>
                         )}
                         {exercise.type === 'cardio' && (

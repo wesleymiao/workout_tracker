@@ -325,8 +325,6 @@ function ExerciseCard({ exercise, index, totalCount, onToggleComplete, onEdit, o
               <p className="text-sm text-muted-foreground">
                 <span className="font-mono">{exercise.weight}kg</span>
                 {' × '}
-                <span className="font-mono">{exercise.targetReps}</span> reps
-                {' × '}
                 <span className="font-mono">{exercise.targetSets}</span> sets
               </p>
               
@@ -600,7 +598,6 @@ function ExerciseDialog({ open, onOpenChange, exercise, exerciseType, onSave }: 
   const [type, setType] = useState<'equipment' | 'cardio'>(exerciseType)
   const [name, setName] = useState('')
   const [weight, setWeight] = useState('')
-  const [targetReps, setTargetReps] = useState('')
   const [targetSets, setTargetSets] = useState('')
   const [targetDistance, setTargetDistance] = useState('')
 
@@ -612,20 +609,17 @@ function ExerciseDialog({ open, onOpenChange, exercise, exerciseType, onSave }: 
         setName(exercise.name)
         if (exercise.type === 'equipment') {
           setWeight(exercise.weight.toString())
-          setTargetReps(exercise.targetReps.toString())
           setTargetSets(exercise.targetSets.toString())
           setTargetDistance('')
         } else if (exercise.type === 'cardio') {
           setTargetDistance(exercise.targetDistance.toString())
           setWeight('')
-          setTargetReps('')
           setTargetSets('')
         }
       } else {
         setType(exerciseType)
         setName('')
         setWeight('')
-        setTargetReps('')
         setTargetSets('')
         setTargetDistance('')
       }
@@ -639,7 +633,7 @@ function ExerciseDialog({ open, onOpenChange, exercise, exerciseType, onSave }: 
     }
 
     if (type === 'equipment') {
-      if (!weight || !targetReps || !targetSets) {
+      if (!weight || !targetSets) {
         toast.error('Please fill in all fields')
         return
       }
@@ -649,7 +643,6 @@ function ExerciseDialog({ open, onOpenChange, exercise, exerciseType, onSave }: 
         type: 'equipment',
         name: name.trim(),
         weight: parseFloat(weight),
-        targetReps: parseInt(targetReps),
         targetSets: parseInt(targetSets),
         completedSets: exercise?.type === 'equipment' ? exercise.completedSets : 0,
         completed: exercise?.completed ?? false
@@ -711,7 +704,7 @@ function ExerciseDialog({ open, onOpenChange, exercise, exerciseType, onSave }: 
 
           {type === 'equipment' ? (
             <>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="weight">Weight (kg)</Label>
                   <Input
@@ -720,16 +713,6 @@ function ExerciseDialog({ open, onOpenChange, exercise, exerciseType, onSave }: 
                     placeholder="100"
                     value={weight}
                     onChange={(e) => setWeight(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="reps">Reps</Label>
-                  <Input
-                    id="reps"
-                    type="number"
-                    placeholder="12"
-                    value={targetReps}
-                    onChange={(e) => setTargetReps(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">

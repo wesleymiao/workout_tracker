@@ -9,11 +9,9 @@ export interface EquipmentExercise {
   type: 'equipment'
   name: string
   weight: number
-  targetReps: number
   targetSets: number
   completedSets: number
   actualWeight?: number
-  actualReps?: number[]
   completed: boolean
   difficulty?: ExerciseDifficulty
   difficultyReps?: number

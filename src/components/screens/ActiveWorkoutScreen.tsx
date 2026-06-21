@@ -218,15 +218,14 @@ export default function ActiveWorkoutScreen({ isPastWorkoutMode = false, onExitP
     if (!activeWorkout) return
 
     // For past workouts, mark all exercises as completed
-    const exercises = isPastWorkoutMode 
+    const exercises = isPastWorkoutMode
       ? activeWorkout.exercises.map((exercise): Exercise => {
           if (exercise.type === 'equipment') {
             return {
               ...exercise,
               completed: true,
               completedSets: exercise.targetSets,
-              actualWeight: exercise.actualWeight ?? exercise.weight,
-              actualReps: exercise.actualReps ?? Array(exercise.targetSets).fill(exercise.targetReps)
+              actualWeight: exercise.actualWeight ?? exercise.weight
             }
           } else if (exercise.type === 'swim') {
             return {

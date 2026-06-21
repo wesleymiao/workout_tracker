@@ -4,7 +4,20 @@
     "type": "Push",
     "date": "2026-04-18T22:16:29.109Z",
     "startTime": "2026-04-18T22:16:29.109Z",
-    "exercises": [],
+    "exercises": [
+      {
+        "id": "mqddd8ncx2e9r1de49c",
+        "type": "equipment",
+        "name": "Test Bench Press",
+        "weight": 60,
+        "targetReps": 12,
+        "targetSets": 1,
+        "completedSets": 1,
+        "completed": true,
+        "difficulty": "moderate",
+        "difficultyReps": 14
+      }
+    ],
     "completed": false
   },
   "workouts": [

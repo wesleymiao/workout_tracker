@@ -329,7 +329,7 @@ export default function ExercisePlanner({ workout, onUpdateWorkout, onStartWorko
                           <h4 className="font-medium">{exercise.name}</h4>
                           <p className="text-sm text-muted-foreground font-mono">
                             {isEquipment
-                              ? `${(exercise as EquipmentExercise).weight}kg × ${(exercise as EquipmentExercise).targetReps} reps × ${(exercise as EquipmentExercise).targetSets} sets`
+                              ? `${(exercise as EquipmentExercise).weight}kg × ${(exercise as EquipmentExercise).targetSets} sets`
                               : `${(exercise as CardioExercise).targetDistance}km`
                             }
                           </p>
@@ -397,7 +397,6 @@ function StrengthExerciseDialog({ open, onOpenChange, exercise, onSave }: Streng
   const [type, setType] = useState<'equipment' | 'cardio'>('equipment')
   const [name, setName] = useState('')
   const [weight, setWeight] = useState('')
-  const [targetReps, setTargetReps] = useState('')
   const [targetSets, setTargetSets] = useState('')
   const [targetDistance, setTargetDistance] = useState('')
 
@@ -407,7 +406,6 @@ function StrengthExerciseDialog({ open, onOpenChange, exercise, onSave }: Streng
       setName(exercise.name)
       if (exercise.type === 'equipment') {
         setWeight(exercise.weight.toString())
-        setTargetReps(exercise.targetReps.toString())
         setTargetSets(exercise.targetSets.toString())
       } else {
         setTargetDistance(exercise.targetDistance.toString())
@@ -416,7 +414,6 @@ function StrengthExerciseDialog({ open, onOpenChange, exercise, onSave }: Streng
       setType('equipment')
       setName('')
       setWeight('')
-      setTargetReps('')
       setTargetSets('')
       setTargetDistance('')
     }
@@ -429,7 +426,7 @@ function StrengthExerciseDialog({ open, onOpenChange, exercise, onSave }: Streng
     }
 
     if (type === 'equipment') {
-      if (!weight || !targetReps || !targetSets) {
+      if (!weight || !targetSets) {
         toast.error('Please fill in all fields')
         return
       }
@@ -439,7 +436,6 @@ function StrengthExerciseDialog({ open, onOpenChange, exercise, onSave }: Streng
         type: 'equipment',
         name: name.trim(),
         weight: parseFloat(weight),
-        targetReps: parseInt(targetReps),
         targetSets: parseInt(targetSets),
         completedSets: exercise?.type === 'equipment' ? exercise.completedSets : 0,
         completed: exercise?.completed ?? false
@@ -486,7 +482,7 @@ function StrengthExerciseDialog({ open, onOpenChange, exercise, onSave }: Streng
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="equipment">Equipment (Weight/Reps/Sets)</SelectItem>
+                <SelectItem value="equipment">Equipment (Weight/Sets)</SelectItem>
                 <SelectItem value="cardio">Cardio (Distance)</SelectItem>
               </SelectContent>
             </Select>
@@ -503,7 +499,7 @@ function StrengthExerciseDialog({ open, onOpenChange, exercise, onSave }: Streng
           </div>
 
           {type === 'equipment' ? (
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="weight">Weight (kg)</Label>
                 <Input
@@ -512,16 +508,6 @@ function StrengthExerciseDialog({ open, onOpenChange, exercise, onSave }: Streng
                   placeholder="100"
                   value={weight}
                   onChange={(e) => setWeight(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="reps">Reps</Label>
-                <Input
-                  id="reps"
-                  type="number"
-                  placeholder="12"
-                  value={targetReps}
-                  onChange={(e) => setTargetReps(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
