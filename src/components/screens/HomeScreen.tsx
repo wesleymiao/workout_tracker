@@ -1,5 +1,5 @@
 import { useLocalStorage } from '@/hooks/use-local-storage'
-import { Plus, ClockCounterClockwise, Trash, CaretLeft, CaretRight, Warning, Fire, DownloadSimple } from '@phosphor-icons/react'
+import { Plus, ClockCounterClockwise, Trash, CaretLeft, CaretRight, Warning, Fire, DownloadSimple, CaretDown } from '@phosphor-icons/react'
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
 import { useState, useMemo } from 'react'
@@ -106,6 +106,7 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
   const [workoutToDelete, setWorkoutToDelete] = useState<Workout | null>(null)
   const [showDeleteActiveDialog, setShowDeleteActiveDialog] = useState(false)
   const [currentMonth, setCurrentMonth] = useState(() => new Date())
+  const [showAllMonths, setShowAllMonths] = useState(false)
 
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
@@ -184,6 +185,77 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
       })
       .sort((a, b) => b.monthDate.getTime() - a.monthDate.getTime())
   }, [completedWorkouts])
+
+  // Calculate current month's aerobic/anaerobic balance for reminder
+  const currentMonthBalance = useMemo(() => {
+    const now = new Date()
+    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+    const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+
+    const currentMonthWorkouts = completedWorkouts.filter(w => {
+      const workoutDate = new Date(w.date)
+      return workoutDate >= currentMonthStart && workoutDate < nextMonthStart
+    })
+
+    const anaerobic = currentMonthWorkouts.filter(w => isStrengthWorkout(w.type)).length
+    const aerobic = currentMonthWorkouts.filter(w => !isStrengthWorkout(w.type)).length
+
+    return { anaerobic, aerobic, total: anaerobic + aerobic }
+  }, [completedWorkouts])
+
+  // Get balance reminder message
+  const getBalanceReminder = () => {
+    const { anaerobic, aerobic, total } = currentMonthBalance
+
+    // No workouts this month yet
+    if (total === 0) return null
+
+    // Both types have workouts - check balance
+    if (anaerobic > 0 && aerobic > 0) {
+      const ratio = anaerobic / aerobic
+      if (ratio > 2) {
+        return {
+          type: 'warning' as const,
+          message: `本月无氧${anaerobic}次，有氧${aerobic}次`,
+          subMessage: '建议增加有氧运动（游泳/跑步）保持平衡 🏃'
+        }
+      }
+      if (ratio < 0.5) {
+        return {
+          type: 'warning' as const,
+          message: `本月有氧${aerobic}次，无氧${anaerobic}次`,
+          subMessage: '建议增加力量训练（Pull/Push/Legs）保持平衡 💪'
+        }
+      }
+      // Balanced
+      return {
+        type: 'great' as const,
+        message: `本月训练平衡！无氧${anaerobic}次，有氧${aerobic}次`,
+        subMessage: '继续保持有氧和无氧的均衡训练 ⚖️'
+      }
+    }
+
+    // Only one type of workout
+    if (anaerobic > 0 && aerobic === 0) {
+      return {
+        type: 'urgent' as const,
+        message: `本月只有无氧训练${anaerobic}次，没有有氧`,
+        subMessage: '建议增加有氧运动（游泳/跑步）🏃'
+      }
+    }
+
+    if (aerobic > 0 && anaerobic === 0) {
+      return {
+        type: 'urgent' as const,
+        message: `本月只有有氧训练${aerobic}次，没有无氧`,
+        subMessage: '建议增加力量训练（Pull/Push/Legs）💪'
+      }
+    }
+
+    return null
+  }
+
+  const balanceReminder = getBalanceReminder()
 
   // Get reminder message based on days since last workout
   const getWorkoutReminder = () => {
@@ -412,6 +484,43 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
         </Card>
       )}
 
+      {/* Balance Reminder Banner - shows aerobic/anaerobic balance for current month */}
+      {balanceReminder && (
+        <Card className={`p-4 border-l-4 ${
+          balanceReminder.type === 'great'
+            ? 'bg-green-500/10 border-l-green-500'
+            : balanceReminder.type === 'warning'
+            ? 'bg-yellow-500/10 border-l-yellow-500'
+            : 'bg-orange-500/10 border-l-orange-500'
+        }`}>
+          <div className="flex items-start gap-3">
+            <div className={`mt-0.5 text-lg ${
+              balanceReminder.type === 'great'
+                ? 'text-green-500'
+                : balanceReminder.type === 'warning'
+                ? 'text-yellow-500'
+                : 'text-orange-500'
+            }`}>
+              ⚖️
+            </div>
+            <div className="flex-1">
+              <p className={`font-semibold ${
+                balanceReminder.type === 'great'
+                  ? 'text-green-500'
+                  : balanceReminder.type === 'warning'
+                  ? 'text-yellow-500'
+                  : 'text-orange-500'
+              }`}>
+                {balanceReminder.message}
+              </p>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {balanceReminder.subMessage}
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Resume Workout Card (if in-progress and valid) */}
       {isActiveWorkoutValid && activeWorkout && (
         <Card className="p-4 bg-accent/10 border-accent/30">
@@ -473,7 +582,7 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
               <div className="text-center text-[10px]">💪vs🏃</div>
             </div>
             <div className="mt-2 divide-y divide-border/50 text-xs">
-              {monthlySummaries.map(summary => {
+              {(showAllMonths ? monthlySummaries : monthlySummaries.slice(0, 3)).map(summary => {
                 const monthNumber = String(summary.monthDate.getMonth() + 1).padStart(2, '0')
                 const shortYear = String(summary.monthDate.getFullYear()).slice(-2)
                 const shortMonthLabel = `${shortYear}.${monthNumber}`
@@ -503,6 +612,23 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
                 )
               })}
             </div>
+            {monthlySummaries.length > 3 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAllMonths(!showAllMonths)}
+                className="w-full mt-2 text-xs text-muted-foreground hover:text-foreground"
+              >
+                {showAllMonths ? (
+                  <>收起</>
+                ) : (
+                  <>
+                    <CaretDown size={14} className="mr-1" />
+                    展开更多 ({monthlySummaries.length - 3} 个月)
+                  </>
+                )}
+              </Button>
+            )}
           </Card>
         )}
       </div>
