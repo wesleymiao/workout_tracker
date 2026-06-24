@@ -212,26 +212,31 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
 
     // Both types have workouts - check balance
     if (anaerobic > 0 && aerobic > 0) {
-      const ratio = anaerobic / aerobic
-      if (ratio > 2) {
+      const diff = Math.abs(anaerobic - aerobic)
+
+      // Balanced: difference <= 1
+      if (diff <= 1) {
+        return {
+          type: 'great' as const,
+          message: `本月训练平衡！无氧${anaerobic}次，有氧${aerobic}次`,
+          subMessage: '继续保持有氧和无氧的均衡训练 ⚖️'
+        }
+      }
+
+      // Imbalanced: more anaerobic
+      if (anaerobic > aerobic) {
         return {
           type: 'warning' as const,
           message: `本月无氧${anaerobic}次，有氧${aerobic}次`,
           subMessage: '建议增加有氧运动（游泳/跑步）保持平衡 🏃'
         }
       }
-      if (ratio < 0.5) {
-        return {
-          type: 'warning' as const,
-          message: `本月有氧${aerobic}次，无氧${anaerobic}次`,
-          subMessage: '建议增加力量训练（Pull/Push/Legs）保持平衡 💪'
-        }
-      }
-      // Balanced
+
+      // Imbalanced: more aerobic
       return {
-        type: 'great' as const,
-        message: `本月训练平衡！无氧${anaerobic}次，有氧${aerobic}次`,
-        subMessage: '继续保持有氧和无氧的均衡训练 ⚖️'
+        type: 'warning' as const,
+        message: `本月有氧${aerobic}次，无氧${anaerobic}次`,
+        subMessage: '建议增加力量训练（Pull/Push/Legs）保持平衡 💪'
       }
     }
 
