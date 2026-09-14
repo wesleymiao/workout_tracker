@@ -1,5 +1,5 @@
 import { useLocalStorage } from '@/hooks/use-local-storage'
-import { Plus, ClockCounterClockwise, Trash, CaretLeft, CaretRight, Warning, Fire, DownloadSimple, CaretDown } from '@phosphor-icons/react'
+import { Plus, ClockCounterClockwise, Trash, CaretLeft, CaretRight, Warning, Fire, DownloadSimple, CaretDown, CheckCircle } from '@phosphor-icons/react'
 import { Button } from '../ui/button'
 import { Card } from '../ui/card'
 import { useState, useMemo } from 'react'
@@ -14,6 +14,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../ui/alert-dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../ui/dialog'
+import { formatDuration } from '@/lib/workout-utils'
 
 interface HomeScreenProps {
   onStartWorkout: (isPastWorkout?: boolean) => void
@@ -27,6 +29,8 @@ const getWorkoutTypeTextColor = (type: WorkoutType): string => {
       return 'text-red-400'
     case 'Legs':
       return 'text-green-400'
+    case '多关节复合':
+      return 'text-yellow-400'
     case 'Swim':
       return 'text-cyan-400'
     case 'Run (Gym)':
@@ -63,10 +67,11 @@ const formatWorkoutLabel = (workout: Workout): string => {
 }
 
 const countWorkoutsByType = (workoutList: Workout[]) => {
-  const counts: Record<'Pull' | 'Push' | 'Legs' | 'Swim' | 'Run', number> = {
+  const counts: Record<'Pull' | 'Push' | 'Legs' | '多关节复合' | 'Swim' | 'Run', number> = {
     'Pull': 0,
     'Push': 0,
     'Legs': 0,
+    '多关节复合': 0,
     'Swim': 0,
     'Run': 0
   }
@@ -107,6 +112,8 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
   const [showDeleteActiveDialog, setShowDeleteActiveDialog] = useState(false)
   const [currentMonth, setCurrentMonth] = useState(() => new Date())
   const [showAllMonths, setShowAllMonths] = useState(false)
+  const [olderWorkoutCount, setOlderWorkoutCount] = useState(0)
+  const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null)
 
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
@@ -319,9 +326,12 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
 
   const workoutReminder = getWorkoutReminder()
 
-  const recentWorkouts = workouts
-    .filter(w => w.completed && new Date(w.date) >= thirtyDaysAgo)
+  const sortedCompletedWorkouts = [...completedWorkouts]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  const recentWorkouts = sortedCompletedWorkouts.filter(w => new Date(w.date) >= thirtyDaysAgo)
+  const olderWorkouts = sortedCompletedWorkouts.filter(w => new Date(w.date) < thirtyDaysAgo)
+  const visibleWorkouts = [...recentWorkouts, ...olderWorkouts.slice(0, olderWorkoutCount)]
+  const remainingOlderWorkoutCount = Math.max(0, olderWorkouts.length - olderWorkoutCount)
 
   const getDaysSinceLastWorkoutOfType = (workoutType: WorkoutType, currentWorkoutDate: string): number | null => {
     const currentDate = new Date(currentWorkoutDate)
@@ -577,14 +587,15 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
           </Card>
         ) : (
           <Card className="p-4">
-            <div className="grid grid-cols-7 gap-1 text-[11px] font-medium text-muted-foreground">
+            <div className="grid grid-cols-8 gap-1 text-[10px] font-medium text-muted-foreground">
               <div className="text-left">Month</div>
               <div className="text-center text-blue-400">Pull</div>
               <div className="text-center text-red-400">Push</div>
               <div className="text-center text-green-400">Legs</div>
+              <div className="text-center text-yellow-400">复合</div>
               <div className="text-center text-cyan-400">Swim</div>
               <div className="text-center text-orange-400">Run</div>
-              <div className="text-center text-[10px]">💪vs🏃</div>
+              <div className="text-center text-[9px]">💪vs🏃</div>
             </div>
             <div className="mt-2 divide-y divide-border/50 text-xs">
               {(showAllMonths ? monthlySummaries : monthlySummaries.slice(0, 3)).map(summary => {
@@ -592,11 +603,12 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
                 const shortYear = String(summary.monthDate.getFullYear()).slice(-2)
                 const shortMonthLabel = `${shortYear}.${monthNumber}`
                 return (
-                  <div key={summary.monthDate.toISOString()} className="grid grid-cols-7 gap-1 py-2 min-w-0">
+                  <div key={summary.monthDate.toISOString()} className="grid grid-cols-8 gap-1 py-2 min-w-0">
                     <div className="font-medium">{shortMonthLabel}</div>
                     <div className="text-center font-mono">{summary.byType.Pull}</div>
                     <div className="text-center font-mono">{summary.byType.Push}</div>
                     <div className="text-center font-mono">{summary.byType.Legs}</div>
+                    <div className="text-center font-mono">{summary.byType['多关节复合']}</div>
                     <div className="text-center font-mono">{summary.byType.Swim}</div>
                     <div className="text-center font-mono">
                       {summary.byType.Run} ({formatRunDistanceKm(summary.runDistanceKm)}km)
@@ -733,7 +745,7 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
       <div>
         <h2 className="text-2xl font-semibold mb-4">Recent Workouts</h2>
         <div className="space-y-3">
-          {recentWorkouts.length === 0 ? (
+          {visibleWorkouts.length === 0 ? (
             <Card className="p-6 text-center">
               <p className="text-muted-foreground">No workouts yet</p>
               <p className="text-sm text-muted-foreground mt-1">
@@ -741,10 +753,22 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
               </p>
             </Card>
           ) : (
-            recentWorkouts.map(workout => {
+            visibleWorkouts.map(workout => {
               const daysSinceType = getDaysSinceLastWorkoutOfType(workout.type, workout.date)
               return (
-                <Card key={workout.id} className="p-4">
+                <Card
+                  key={workout.id}
+                  role="button"
+                  tabIndex={0}
+                  className="p-4 cursor-pointer transition-colors hover:border-accent"
+                  onClick={() => setSelectedWorkout(workout)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      setSelectedWorkout(workout)
+                    }
+                  }}
+                >
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="flex items-center gap-2">
@@ -773,7 +797,11 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleDeleteWorkout(workout)}
+                        aria-label={`Delete ${workout.type} workout`}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          handleDeleteWorkout(workout)
+                        }}
                         className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                       >
                         <Trash size={18} />
@@ -783,6 +811,16 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
                 </Card>
               )
             })
+          )}
+          {remainingOlderWorkoutCount > 0 && (
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setOlderWorkoutCount(count => count + 10)}
+            >
+              <CaretDown size={16} />
+              加载更多过去记录 ({remainingOlderWorkoutCount})
+            </Button>
           )}
         </div>
       </div>
@@ -812,6 +850,74 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
           Export All Data
         </Button>
       </div>
+
+      <Dialog open={!!selectedWorkout} onOpenChange={(open) => !open && setSelectedWorkout(null)}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
+          {selectedWorkout && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{selectedWorkout.type}</DialogTitle>
+                <DialogDescription>
+                  {new Date(selectedWorkout.date).toLocaleDateString('zh-CN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    weekday: 'long',
+                  })}
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Card className="p-3">
+                  <p className="text-xs text-muted-foreground">训练时长</p>
+                  <p className="mt-1 font-semibold">{formatDuration(selectedWorkout.startTime, selectedWorkout.endTime)}</p>
+                </Card>
+                <Card className="p-3">
+                  <p className="text-xs text-muted-foreground">完成情况</p>
+                  <p className="mt-1 font-semibold">
+                    {selectedWorkout.exercises.filter(exercise => exercise.completed).length}/{selectedWorkout.exercises.length}
+                  </p>
+                </Card>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="font-semibold">训练项目</h3>
+                {selectedWorkout.exercises.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">没有记录训练项目</p>
+                ) : (
+                  selectedWorkout.exercises.map(exercise => (
+                    <Card key={exercise.id} className="p-3">
+                      <div className="flex items-start gap-3">
+                        <CheckCircle
+                          size={18}
+                          weight={exercise.completed ? 'fill' : 'regular'}
+                          className={exercise.completed ? 'mt-0.5 text-accent' : 'mt-0.5 text-muted-foreground'}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium">
+                            {'name' in exercise ? exercise.name : exercise.type === 'swim' ? '游泳' : '跑步'}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {exercise.type === 'equipment' && `${exercise.actualWeight ?? exercise.weight}kg · ${exercise.completedSets}/${exercise.targetSets} 组`}
+                            {exercise.type === 'cardio' && `${exercise.actualDistance ?? exercise.targetDistance}km`}
+                            {exercise.type === 'swim' && `${exercise.actualDistance ?? exercise.targetDistance}m`}
+                            {exercise.type === 'run' && `${exercise.actualDistance ?? exercise.targetDistance}km`}
+                          </p>
+                          {exercise.type === 'equipment' && exercise.difficulty && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              难度：{exercise.difficulty}{exercise.difficultyReps ? ` · ${exercise.difficultyReps} 次` : ''}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Completed Workout Confirmation */}
       <AlertDialog open={!!workoutToDelete} onOpenChange={(open) => !open && setWorkoutToDelete(null)}>

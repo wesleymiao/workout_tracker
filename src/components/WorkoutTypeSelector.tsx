@@ -23,6 +23,11 @@ const workoutTypes: { type: WorkoutType; icon: React.ReactNode; description: str
     description: 'Quads, hamstrings, glutes'
   },
   {
+    type: '多关节复合',
+    icon: <Barbell size={32} weight="fill" />,
+    description: '多关节协同的复合力量训练'
+  },
+  {
     type: 'Swim',
     icon: <Waves size={32} weight="fill" />,
     description: 'Pool or open water'

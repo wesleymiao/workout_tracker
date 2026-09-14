@@ -1,4 +1,4 @@
-export type WorkoutType = 'Pull' | 'Push' | 'Legs' | 'Swim' | 'Run (Gym)' | 'Run (Outdoor)'
+export type WorkoutType = 'Pull' | 'Push' | 'Legs' | '多关节复合' | 'Swim' | 'Run (Gym)' | 'Run (Outdoor)'
 
 export type ExerciseDifficulty = 'easy' | 'moderate' | 'hard'
 
@@ -88,7 +88,7 @@ export const HEALTH_METRIC_LABELS: Record<string, { label: string; icon: string;
 
 // Helper function to check if workout type is strength-based (Pull/Push/Legs)
 export function isStrengthWorkout(type: WorkoutType): boolean {
-  return type === 'Pull' || type === 'Push' || type === 'Legs'
+  return type === 'Pull' || type === 'Push' || type === 'Legs' || type === '多关节复合'
 }
 
 // Helper function to check if workout type is run

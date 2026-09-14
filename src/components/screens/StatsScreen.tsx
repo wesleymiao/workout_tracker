@@ -17,6 +17,8 @@ const getWorkoutTypeColor = (type: WorkoutType): string => {
       return 'bg-red-500'
     case 'Legs':
       return 'bg-green-500'
+    case '多关节复合':
+      return 'bg-yellow-500'
     case 'Swim':
       return 'bg-cyan-500'
     case 'Run (Gym)':
@@ -34,6 +36,8 @@ const getWorkoutTypeTextColor = (type: WorkoutType): string => {
       return 'text-red-400'
     case 'Legs':
       return 'text-green-400'
+    case '多关节复合':
+      return 'text-yellow-400'
     case 'Swim':
       return 'text-cyan-400'
     case 'Run (Gym)':
@@ -110,6 +114,7 @@ export default function StatsScreen() {
       'Pull': 0,
       'Push': 0,
       'Legs': 0,
+      '多关节复合': 0,
       'Swim': 0,
       'Run (Gym)': 0,
       'Run (Outdoor)': 0
