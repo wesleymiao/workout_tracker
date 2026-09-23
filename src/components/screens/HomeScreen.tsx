@@ -87,6 +87,15 @@ const countWorkoutsByType = (workoutList: Workout[]) => {
   return counts
 }
 
+const getSwimDistanceMeters = (workoutList: Workout[]) => {
+  return workoutList.reduce((total, workout) => {
+    const swimDistance = workout.exercises
+      .filter(exercise => exercise.type === 'swim')
+      .reduce((sum, exercise) => sum + (exercise.actualDistance || exercise.targetDistance), 0)
+    return total + swimDistance
+  }, 0)
+}
+
 const getRunDistanceKm = (workoutList: Workout[]) => {
   return workoutList.reduce((total, workout) => {
     const runDistance = workout.exercises
@@ -185,6 +194,7 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
           monthDate,
           total: workouts.length,
           byType: countWorkoutsByType(workouts),
+          swimDistanceMeters: getSwimDistanceMeters(workouts),
           runDistanceKm: getRunDistanceKm(workouts),
           anaerobic,
           aerobic,
@@ -609,7 +619,9 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
                     <div className="text-center font-mono">{summary.byType.Push}</div>
                     <div className="text-center font-mono">{summary.byType.Legs}</div>
                     <div className="text-center font-mono">{summary.byType['多关节复合']}</div>
-                    <div className="text-center font-mono">{summary.byType.Swim}</div>
+                    <div className="text-center font-mono">
+                      {summary.byType.Swim} ({summary.swimDistanceMeters}m)
+                    </div>
                     <div className="text-center font-mono">
                       {summary.byType.Run} ({formatRunDistanceKm(summary.runDistanceKm)}km)
                     </div>
