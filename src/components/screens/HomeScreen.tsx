@@ -619,11 +619,13 @@ export default function HomeScreen({ onStartWorkout }: HomeScreenProps) {
                     <div className="text-center font-mono">{summary.byType.Push}</div>
                     <div className="text-center font-mono">{summary.byType.Legs}</div>
                     <div className="text-center font-mono">{summary.byType['多关节复合']}</div>
-                    <div className="text-center font-mono">
-                      {summary.byType.Swim} ({summary.swimDistanceMeters}m)
+                    <div className="text-center font-mono leading-tight">
+                      <div>{summary.byType.Swim}</div>
+                      <div className="text-[9px] text-muted-foreground whitespace-nowrap">{summary.swimDistanceMeters}m</div>
                     </div>
-                    <div className="text-center font-mono">
-                      {summary.byType.Run} ({formatRunDistanceKm(summary.runDistanceKm)}km)
+                    <div className="text-center font-mono leading-tight">
+                      <div>{summary.byType.Run}</div>
+                      <div className="text-[9px] text-muted-foreground whitespace-nowrap">{formatRunDistanceKm(summary.runDistanceKm)}km</div>
                     </div>
                     <div className="text-center font-mono">
                       <span className={summary.anaerobic === 0 && summary.aerobic > 0 ? 'text-red-400' : summary.anaerobic > summary.aerobic * 2 ? 'text-yellow-400' : ''}>
